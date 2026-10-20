@@ -38,6 +38,7 @@ h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)
 .g3{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
 .g5{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi{text-align:center}
 .kpi .lbl{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 .kpi .val{font-size:34px;font-weight:800;line-height:1.15;margin-top:4px}
 .kpi .sub{font-size:13px;color:var(--muted);margin-top:2px}
@@ -152,6 +153,20 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
 @keyframes sp{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--forest);color:#fff;padding:11px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:60;max-width:min(560px,92vw);font-size:14px}
 [hidden]{display:none!important}
+.tabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;background:var(--paper);padding:8px 0 10px;margin-bottom:4px;border-bottom:2px solid var(--line)}
+.tabs button{font:inherit;font-size:14px;font-weight:800;white-space:nowrap;border:2px solid var(--quali);background:#fff;color:var(--quali);border-radius:30px;padding:8px 16px;cursor:pointer}
+.tabs button.on{background:var(--quali);color:#fff}
+.tabs button:hover{filter:brightness(1.05)}
+.tab>h2:first-child{margin-top:18px}
+#appView[data-tab=meses] #empty,#appView[data-tab=calculo] #empty,#appView[data-tab=tiendas] #empty{display:none}
+table.tl th,table.tl td{text-align:right}
+table.tl th.l,table.tl td.l{text-align:left}
+table.tl td.desc{white-space:normal;min-width:220px;text-align:left}
+#tdTiendas tbody tr{cursor:pointer}
+#tdTiendas tbody tr.sel td{background:var(--soft-sun)!important}
+td.fal{color:#C62E0A;font-weight:800} td.sob{color:#B07F00;font-weight:800}
+tr.sus td{background:var(--soft-red)!important}
+.controls input[type=search]{min-width:220px}
 @media(max-width:600px){.wrap{padding:0 16px 40px}.g3,.g4,.g5{grid-template-columns:1fr}.kpi .val{font-size:28px}.titlebar h1{font-size:16px}.titlebar .tag{display:none}.daysbox{grid-template-columns:repeat(2,1fr)}.prow{grid-template-columns:1fr 110px 34px}header.top img{height:40px}}
 </style>
 </head>
@@ -187,9 +202,18 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
     <span class="status" id="srcStatus"></span>
   </div>
 
+  <nav class="tabs" id="tabs">
+    <button data-t="resumen" class="on">Resumen del mes</button>
+    <button data-t="resultados">Resultados</button>
+    <button data-t="tiendas">Inconsistencias por tienda</button>
+    <button data-t="meses">Meses anteriores</button>
+    <button data-t="calculo">Cómo se calcula</button>
+  </nav>
+
   <div id="empty" class="card" hidden><b>Aún no hay datos cargados.</b><div class="note">Usa «Cargar datos del día» y selecciona los dos archivos de Excel (resumen de inconsistencias y tiempo de picking).</div></div>
 
   <div id="dash">
+  <section class="tab" data-tab="resumen">
   <h2>Acumulado del área <small id="areaNote"></small></h2>
   <div class="grid g4">
     <div class="card kpi k1"><div class="lbl">Total picking acumulado</div><div class="val" id="tPick">–</div><div class="sub" id="tPickSub"></div></div>
@@ -226,6 +250,9 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
     </div>
   </div>
 
+  </section>
+
+  <section class="tab" data-tab="resultados" hidden>
   <h2>Resultado por bodega <small>pickers oficiales</small></h2>
   <div class="grid g5" id="bodegas"></div>
 
@@ -241,14 +268,38 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
 
   <h2>Apoyo intermitente <small>fuera de rankings; sí suman al acumulado del área</small></h2>
   <div class="sup" id="sup"></div>
+  </section>
   </div>
 
+  <section class="tab" data-tab="tiendas" hidden>
+  <h2>Inconsistencias por tienda <small id="tdNote"></small></h2>
+  <div id="tdEmpty" class="card" hidden></div>
+  <div id="tdBody">
+    <div class="grid g4" id="tdKpis"></div>
+    <div class="controls" style="margin-top:14px">
+      <label>Tienda<select id="fTienda"></select></label>
+      <label>Picker<select id="fUser"></select></label>
+      <label>Tipo<select id="fTipo"><option value="">Todos</option><option value="f">Faltante (enviado &gt; recibido)</option><option value="s">Sobrante (recibido &gt; enviado)</option></select></label>
+      <label>Buscar SKU o descripción<input type="search" id="fTxt" placeholder="Ej. A01142 o galleta"></label>
+      <button class="btn alt" id="fClear">Limpiar filtros</button>
+      <button class="btn alt" id="fCsv">Descargar CSV</button>
+    </div>
+    <h2>Resumen por tienda <small>toca una tienda para filtrar</small></h2>
+    <div class="tablewrap"><table id="tdTiendas" class="tl"></table></div>
+    <h2>Detalle <small id="tdCount"></small></h2>
+    <div class="tablewrap" style="max-height:640px"><table id="tdDet" class="tl"></table></div>
+  </div>
+  </section>
+
+  <section class="tab" data-tab="meses" hidden>
   <h2>Meses anteriores <small>solo resumen · el mes en curso va como proyección</small></h2>
   <div style="margin:-2px 0 12px"><button class="btn alt" id="btnHist">+ Agregar mes cerrado</button></div>
   <div class="card hist" id="histBox"></div>
   <div class="tablewrap" style="margin-top:14px"><table id="histTbl"></table></div>
   <div class="tablewrap" style="margin-top:14px"><table id="histTbl2"></table></div>
+  </section>
 
+  <section class="tab" data-tab="calculo" hidden>
   <h2>Cómo se calcula</h2>
   <div class="method"><ul>
     <li><b>Ratio</b> = picking acumulado ÷ inconsistencias de embarque (a más alto, mejor). Se compara contra la escala de su bodega (700/350/175 Variedades, 800/400/200 Lavandería, 500/250/125 Bebidas, 300/150/75 Harinas) para obtener la ponderación 35 / 20 / 10 / 0 %.</li>
@@ -256,15 +307,17 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
     <li><b>SKUs/hora</b> = líneas pickeadas ÷ horas efectivas del archivo de tiempos (horas = líneas ÷ líneas_por_hora), sumando los días del mes hasta la fecha de corte. Alternativa: SKUs únicos ÷ horas, con el selector superior. Escala por bodega para ponderar 15 / 8 / 0 %.</li>
     <li><b>Fin de semana rotativo</b> (todo el mes): cada sábado y domingo cuenta ½ día equivalente (la mitad del grupo trabaja cada día); cada picker trabaja un día del fin de semana, así que su proyección usa los mismos días equivalentes.</li>
     <li><b>Proyección</b>: área = total acumulado ÷ días hábiles transcurridos × días hábiles del mes. Picker = su promedio por día trabajado × (días trabajados + días hábiles restantes), suponiendo asistencia completa.</li>
+    <li><b>Inconsistencias por tienda</b>: Inconsistencia = cantidad enviada − cantidad recibida. Positivo = <b>faltante</b> (llegó menos de lo enviado); negativo = <b>sobrante</b> (llegó más). Se muestran las líneas del mes hasta la fecha de corte. Las líneas con diferencias de 100,000 unidades o más se marcan como posible error de captura (por ejemplo, un código de barras escaneado en el campo de cantidad) y no suman a las unidades.</li>
     <li><b>Datos</b>: cada carga diaria guarda una foto del acumulado del mes con su fecha de corte. Volver a cargar el mismo día reemplaza esa foto; el selector «Fecha de corte» permite ver cualquier día ya cargado. El resumen del mes se guarda solo y pasa a «Meses anteriores» cuando cambia el mes.</li>
   </ul></div>
+  </section>
 </div>
 
 <!-- ======== Diálogo: carga diaria ======== -->
 <dialog id="dl">
   <div class="hd"><span>Cargar datos del día</span><button class="btn alt" style="padding:3px 10px" id="dlClose">✕</button></div>
   <div class="bd">
-    <label class="fld">Archivos de Excel (puedes seleccionar los dos a la vez)<input type="file" id="dlFiles" accept=".xlsx,.xls,.csv" multiple></label>
+    <label class="fld">Archivos de Excel (puedes seleccionar los tres a la vez)<input type="file" id="dlFiles" accept=".xlsx,.xls,.csv" multiple></label>
     <div id="dlInfo" class="note" style="margin:-4px 0 12px"></div>
     <label class="fld">Fecha de corte<input type="date" id="dlCut"></label>
     <div class="status" id="dlMsg">Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.</div>
@@ -294,15 +347,9 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
 <script>
-/* =====================================================================
-   CONFIGURACIÓN · pega aquí los datos de tu proyecto de Supabase
-   (Supabase > Project Settings > API). La "anon public key" está hecha
-   para ir en páginas web: los datos quedan protegidos por el inicio de
-   sesión y las políticas de seguridad (RLS) de la base de datos.
-   ===================================================================== */
-const SUPABASE_URL = 'https://zsleaiirqktvnxfozbwo.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbGVhaWlycWt0dm54Zm96YndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NDg5ODcsImV4cCI6MjEwODAyNDk4N30.DTcyN-BTN0A3RIcg7p8szL59eA7Pdl33_mWY07iBVig';
+// La URL y la llave de Supabase están en config.js
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -373,7 +420,7 @@ async function loadConfig(){
 
 async function loadCut(cut){
   curCut=cut;
-  if(!cut){data=[];hasTime=false;return}
+  if(!cut){data=[];hasTime=false;det=[];return}
   const first=cut.slice(0,8)+'01';
   const [res,tim]=await Promise.all([
     fetchAll(()=>sb.from('resumen_inconsistencias').select('username,dias,cant_pick,inconsistencias').eq('fecha_corte',cut).order('username')),
@@ -383,6 +430,15 @@ async function loadCut(cut){
   hasTime=Object.keys(agg).length>0;
   data=res.map(r=>({username:r.username,dias:r.dias,cant_pick:r.cant_pick,inconsistencias:r.inconsistencias,
     horas:agg[r.username]?agg[r.username].horas:0, skus:agg[r.username]?agg[r.username].skus:null}));
+  await loadDetalle(first,cut);
+}
+let det=[], detErr=null;
+async function loadDetalle(first,cut){
+  det=[];detErr=null;
+  try{
+    det=await fetchAll(()=>sb.from('inconsistencias_detalle').select('id,tarima_num,tienda,fecha_recepciona,sku,descripcion,cantidad_enviada,cantidad_recibida,inconsistencia,usuario')
+      .gte('fecha',first).lte('fecha',cut).order('fecha_recepciona',{ascending:false}).order('id'));
+  }catch(err){detErr=err.message}
 }
 
 function aggTime(rows){
@@ -459,7 +515,7 @@ function render(){
   $('hdrStatus').innerHTML=esc(sbUser||'')+loaded;
   if(!curCut){
     $('empty').hidden=false;$('dash').hidden=true;$('mesTxt').textContent='';$('tagCut').textContent='Sin datos';
-    $('srcStatus').textContent='';lastCur=null;renderHist();return;
+    $('srcStatus').textContent='';lastCur=null;renderHist();renderTiendas();return;
   }
   $('empty').hidden=true;$('dash').hidden=false;
   const cal=calendar();
@@ -502,6 +558,7 @@ function render(){
   renderBodegas(off,cal);
   renderRankings(off);
   renderTable(off);
+  renderTiendas();
   $('sup').innerHTML=sup.map(r=>`<span>${esc(r.u)} · <b>${nf(r.picks)}</b> picks · ${r.inc} inc.</span>`).join('')||'<span>Ninguno</span>';
   const missing=pickers.filter(p=>!data.some(r=>r.username.trim().toLowerCase()===p.u.trim().toLowerCase()));
   { const H=off.reduce((a,r)=>a+r.horas,0), N=off.reduce((a,r)=>a+r.num,0), bd={};
@@ -592,7 +649,7 @@ function renderRankings(off){
     rankCard('Top 5 · SKUs por hora','Mayor productividad','good',T(off,(a,b)=>b.skuh-a.skuh),r=>nf(r.skuh,1),r=>nf(r.ppd,0)+' picks/día'),
     rankCard('Top 5 · Menos inconsistencias','Menor '+(incMode==='cnt'?'cantidad':'% sobre picks')+' de inconsistencias','good',T(off,inc.lo),incVal,incSub),
     rankCard('Top 5 · Meta de ratio','Mayor cumplimiento vs. escala máxima de su bodega','good',T(wm,(a,b)=>b.meta-a.meta),r=>isFinite(r.meta)?nf(r.meta,0)+'%':'∞',r=>'ratio '+ratioTxt(r)),
-    rankCard('Mayor oportunidad · Ratio','Ratio más bajo (picks por inconsistencia)','opp',T(off,(a,b)=>a.ratio-b.ratio),ratioTxt,r=>nf(r.inc)+' inc. / '+nf(r.picks)+' picks'),
+    rankCard('Mayor oportunidad · SKUs por hora','Menor productividad','opp',T(off,(a,b)=>a.skuh-b.skuh),r=>nf(r.skuh,1),r=>nf(r.ppd,0)+' picks/día'),
     rankCard('Top 5 · Más inconsistencias','Mayor '+(incMode==='cnt'?'cantidad':'% sobre picks')+' de inconsistencias','bad',T(off,inc.hi),incVal,incSub),
     rankCard('Mayor oportunidad · Meta de ratio','Menor cumplimiento vs. escala máxima de su bodega','opp',T(wm,(a,b)=>a.meta-b.meta),r=>nf(r.meta,0)+'%',r=>'ratio '+ratioTxt(r))
   ];
@@ -660,8 +717,19 @@ $('dClose').onclick=()=>$('dlg').close();
 
 /* ---------- lectura de Excel ---------- */
 async function readSheet(file){
-  const wb=XLSX.read(await file.arrayBuffer(),{cellDates:true});
-  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null}).map(r=>{const o={};for(const k in r)o[String(k).trim().toLowerCase()]=r[k];return o});
+  const wb=XLSX.read(await file.arrayBuffer());
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null}).map(r=>{const o={};for(const k in r)o[String(k).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]=r[k];return o});
+}
+function toDateTime(v){
+  // devuelve 'AAAA-MM-DDTHH:MM:SS'
+  if(v==null||v==='') return null;
+  if(typeof v==='number') return new Date(Math.round((v-25569)*86400)*1000).toISOString().slice(0,19);
+  if(v instanceof Date) return ymd(v.getFullYear(),v.getMonth()+1,v.getDate())+'T'+pad(v.getHours())+':'+pad(v.getMinutes())+':'+pad(v.getSeconds());
+  const s=String(v).trim(), t=(s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/)||[]);
+  const hh=t.length?pad(+t[1])+':'+t[2]+':'+(t[3]||'00'):'00:00:00';
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return ymd(+m[1],+m[2],+m[3])+'T'+hh;
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/); if(m) return ymd(+m[3],+m[2],+m[1])+'T'+hh;
+  return null;
 }
 function toISO(v){
   if(v==null||v==='') return null;
@@ -673,7 +741,7 @@ function toISO(v){
   if(typeof v==='number') return new Date(Math.round((v-25569)*86400e3)).toISOString().slice(0,10);
   const s=String(v).trim();
   let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return ymd(+m[1],+m[2],+m[3]);
-  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return ymd(+m[3],+m[2],+m[1]);
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/); if(m) return ymd(+m[3],+m[2],+m[1]);
   return null;
 }
 const num=v=>v==null||v===''||isNaN(+v)?null:+v;
@@ -681,6 +749,12 @@ const int=v=>v==null||v===''||isNaN(+v)?null:Math.round(+v);
 function parseResumen(rows){
   return rows.filter(r=>r.username&&('cant_pick' in r)).map(r=>({username:String(r.username).trim(),dias:int(r.dias)||0,cant_pick:int(r.cant_pick)||0,
     inconsistencias:int(r.inconsistencias)||0,r_pick_dia:num(r.r_pick_dia),r_inc:num(r.r_inc),r_ponderado:num(r.r_ponderado)}));
+}
+function parseDetalle(rows){
+  return rows.map(r=>({tarima_num:r.tarima_num==null?null:String(r.tarima_num),tienda:r.tienda_recepciona==null?null:String(r.tienda_recepciona).trim(),
+    fecha_recepciona:toDateTime(r.fecha_recepciona),sku:r.sku==null?null:String(r.sku).trim(),descripcion:r.descripcion==null?null:String(r.descripcion).trim(),
+    cantidad_enviada:num(r.cantidad_enviada),cantidad_recibida:num(r.cantidad_recibida),inconsistencia:num(r.inconsistencia),
+    usuario:r.usuario==null?null:String(r.usuario).trim()})).filter(r=>r.fecha_recepciona&&(r.tienda||r.sku));
 }
 function parseTiempo(rows){
   const out=new Map();
@@ -695,9 +769,9 @@ function parseTiempo(rows){
 }
 
 /* ---------- carga diaria ---------- */
-let pend={res:null,tim:null,resName:'',timName:''};
+let pend={res:null,tim:null,det:null,resName:'',timName:'',detName:''};
 $('btnLoad').onclick=()=>{
-  pend={res:null,tim:null,resName:'',timName:''};
+  pend={res:null,tim:null,det:null,resName:'',timName:'',detName:''};
   $('dlFiles').value='';$('dlInfo').innerHTML='';$('dlCut').value='';$('dlSave').disabled=true;
   $('dlMsg').textContent='Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.';
   $('dl').showModal();
@@ -719,33 +793,55 @@ $('dlFiles').onchange=async e=>{
         const fs=pend.tim.map(r=>r.fecha).sort();
         info.push(`✔ <b>Tiempo de picking</b>: ${pend.tim.length} filas, del ${fechaCorta(fs[0])} al ${fechaCorta(fs[fs.length-1])}`);
         $('dlCut').value=fs[fs.length-1];
+      }else if(cols.includes('tienda_recepciona')&&cols.includes('inconsistencia')){
+        pend.det=parseDetalle(rows);pend.detName=f.name;
+        const fs=pend.det.map(r=>r.fecha_recepciona.slice(0,10)).sort();
+        info.push(`✔ <b>Inconsistencias por tienda</b>: ${pend.det.length} líneas`+(fs.length?`, del ${fechaCorta(fs[0])} al ${fechaCorta(fs[fs.length-1])}`:''));
+        if(!pend.tim&&fs.length&&!$('dlCut').value) $('dlCut').value=fs[fs.length-1];
       }else info.push(`✖ ${esc(f.name)}: no reconozco las columnas`);
     }catch(err){info.push(`✖ ${esc(f.name)}: ${esc(err.message)}`)}
   }
-  if(!pend.res) info.push('⚠ Falta el <b>resumen de inconsistencias</b> (columnas username, dias, cant_pick, inconsistencias).');
-  if(!pend.tim) info.push('⚠ Sin archivo de <b>tiempos</b>: se puede guardar solo el resumen, pero SKUs/hora usará horas fijas.');
+  if(!pend.res) info.push('⚠ Sin <b>resumen de inconsistencias</b>: los KPIs del día no se actualizan.');
+  if(!pend.tim) info.push('⚠ Sin archivo de <b>tiempos</b>: SKUs/hora usará horas fijas.');
+  if(!pend.det) info.push('⚠ Sin archivo de <b>inconsistencias por tienda</b>: esa pestaña no se actualiza.');
   if(!$('dlCut').value){const t=new Date();$('dlCut').value=ymd(t.getFullYear(),t.getMonth()+1,t.getDate())}
   $('dlInfo').innerHTML=info.join('<br>');
-  $('dlSave').disabled=!pend.res;
+  $('dlSave').disabled=!(pend.res||pend.tim||pend.det);
 };
 $('dlSave').onclick=async()=>{
   const cut=$('dlCut').value;
-  if(!cut||!pend.res){$('dlMsg').textContent='Falta la fecha de corte o el resumen.';return}
+  if(!cut){$('dlMsg').textContent='Falta la fecha de corte.';return}
   $('dlSave').disabled=true;
   try{
-    $('dlMsg').textContent='Guardando resumen…';
-    check(await sb.from('resumen_inconsistencias').delete().eq('fecha_corte',cut));
-    check(await sb.from('resumen_inconsistencias').insert(pend.res.map(r=>({...r,fecha_corte:cut}))));
+    if(pend.res){
+      $('dlMsg').textContent='Guardando resumen…';
+      check(await sb.from('resumen_inconsistencias').delete().eq('fecha_corte',cut));
+      check(await sb.from('resumen_inconsistencias').insert(pend.res.map(r=>({...r,fecha_corte:cut}))));
+    }
     if(pend.tim&&pend.tim.length){
       for(let i=0;i<pend.tim.length;i+=500){
         $('dlMsg').textContent=`Guardando tiempos… ${Math.min(i+500,pend.tim.length)} de ${pend.tim.length}`;
         check(await sb.from('tiempo_picking').upsert(pend.tim.slice(i,i+500),{onConflict:'username,fecha'}));
       }
     }
-    $('dlMsg').textContent='Actualizando resumen del mes…';
-    await saveMonthSummary(cut);
-    check(await sb.from('cargas').insert({fecha_corte:cut,archivo_resumen:pend.resName,archivo_tiempos:pend.timName||null,
-      filas_resumen:pend.res.length,filas_tiempos:pend.tim?pend.tim.length:0}));
+    if(pend.det&&pend.det.length){
+      // el archivo reemplaza las líneas de los días que cubre (así no se duplican si se vuelve a cargar)
+      const fs=pend.det.map(r=>r.fecha_recepciona.slice(0,10)).sort();
+      $('dlMsg').textContent='Guardando inconsistencias por tienda…';
+      check(await sb.from('inconsistencias_detalle').delete().gte('fecha',fs[0]).lte('fecha',fs[fs.length-1]));
+      for(let i=0;i<pend.det.length;i+=500){
+        $('dlMsg').textContent=`Guardando inconsistencias por tienda… ${Math.min(i+500,pend.det.length)} de ${pend.det.length}`;
+        check(await sb.from('inconsistencias_detalle').insert(pend.det.slice(i,i+500)));
+      }
+    }
+    if(pend.res||pend.tim){
+      $('dlMsg').textContent='Actualizando resumen del mes…';
+      await saveMonthSummary(cut);
+    }
+    const log={fecha_corte:cut,archivo_resumen:pend.resName||null,archivo_tiempos:pend.timName||null,
+      filas_resumen:pend.res?pend.res.length:0,filas_tiempos:pend.tim?pend.tim.length:0};
+    if(pend.det){log.archivo_detalle=pend.detName;log.filas_detalle=pend.det.length}
+    check(await sb.from('cargas').insert(log));
     $('dl').close();
     await refresh(cut);
     toast('Datos guardados. Corte: '+fechaCorta(cut)+'.');
@@ -839,6 +935,90 @@ $('skuMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
 $('incMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   incMode=b.dataset.m;$('incMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render();
 });
+
+/* ---------- inconsistencias por tienda ---------- */
+const SUS=100000; // diferencias de este tamaño se tratan como error de captura
+let tdSort='fecha_recepciona', tdDir=-1;
+const fdt=s=>{if(!s)return '';const [d,t]=s.split('T');const [y,m,dd]=d.split('-');return dd+'-'+m+'-'+y+' '+(t||'').slice(0,5)};
+const isSus=r=>Math.abs(+r.inconsistencia||0)>=SUS;
+function fillSelect(id,vals,label){
+  const el=$(id), cur=el.value;
+  el.innerHTML=`<option value="">${label}</option>`+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if(vals.includes(cur)) el.value=cur;
+}
+function tdFiltered(){
+  const t=$('fTienda').value,u=$('fUser').value,k=$('fTipo').value,q=$('fTxt').value.trim().toLowerCase();
+  return det.filter(r=>(!t||r.tienda===t)&&(!u||r.usuario===u)&&(!k||(k==='f'?+r.inconsistencia>0:+r.inconsistencia<0))&&
+    (!q||(r.sku||'').toLowerCase().includes(q)||(r.descripcion||'').toLowerCase().includes(q)));
+}
+function renderTiendas(){
+  const empty=$('tdEmpty');
+  if(detErr){empty.hidden=false;$('tdBody').hidden=true;
+    empty.innerHTML='<b>Falta crear la tabla de inconsistencias por tienda.</b><div class="note">En Supabase > SQL Editor ejecuta el archivo <b>03_inconsistencias_tienda.sql</b>. Detalle: '+esc(detErr)+'</div>';return}
+  if(!curCut||!det.length){empty.hidden=false;$('tdBody').hidden=true;$('tdNote').textContent=curCut?'· '+mesLabel(curCut)+' hasta el '+fechaCorta(curCut):'';
+    empty.innerHTML='<b>Aún no hay inconsistencias por tienda en este mes.</b><div class="note">Usa «Cargar datos del día» y agrega el Excel de inconsistencias por tienda (columnas Tarima_Num, Tienda_Recepciona, Fecha_Recepciona, SKU, Descripcion, Cantidad_Enviada, Cantidad_Recibida, Inconsistencia, Usuario).</div>';return}
+  empty.hidden=true;$('tdBody').hidden=false;
+  $('tdNote').textContent='· '+mesLabel(curCut)+' hasta el '+fechaCorta(curCut);
+  fillSelect('fTienda',[...new Set(det.map(r=>r.tienda).filter(Boolean))].sort(),'Todas');
+  fillSelect('fUser',[...new Set(det.map(r=>r.usuario).filter(Boolean))].sort(),'Todos');
+  const rows=tdFiltered();
+  const ok=rows.filter(r=>!isSus(r)), sus=rows.length-ok.length;
+  const fal=ok.reduce((a,r)=>a+Math.max(+r.inconsistencia||0,0),0), sob=ok.reduce((a,r)=>a+Math.max(-(+r.inconsistencia||0),0),0);
+  const byT={};
+  rows.forEach(r=>{const k=r.tienda||'(sin tienda)';const x=byT[k]||(byT[k]={t:k,n:0,f:0,s:0,sus:0,u:{}});x.n++;
+    if(isSus(r))x.sus++;else{const v=+r.inconsistencia||0;if(v>0)x.f+=v;else x.s-=v}
+    if(r.usuario)x.u[r.usuario]=(x.u[r.usuario]||0)+1});
+  const tl=Object.values(byT).sort((a,b)=>b.n-a.n);
+  const tarimas=new Set(rows.map(r=>r.tarima_num)).size;
+  $('tdKpis').innerHTML=`
+    <div class="card kpi k2"><div class="lbl">Líneas con inconsistencia</div><div class="val">${nf(rows.length)}</div><div class="sub">en ${nf(tarimas)} tarimas</div></div>
+    <div class="card kpi k1"><div class="lbl">Unidades faltantes</div><div class="val">${nf(fal)}</div><div class="sub">llegó menos de lo enviado</div></div>
+    <div class="card kpi k3"><div class="lbl">Unidades sobrantes</div><div class="val">${nf(sob)}</div><div class="sub">llegó más de lo enviado</div></div>
+    <div class="card kpi k4"><div class="lbl">Tiendas afectadas</div><div class="val">${nf(tl.length)}</div><div class="sub">${tl.length?'más líneas: '+esc(tl[0].t)+' ('+tl[0].n+')':''}</div></div>`+
+    (sus?`<div class="card" style="grid-column:1/-1;background:var(--soft-red);border-color:#F3B5A5">⚠ <b>${sus} línea${sus>1?'s':''} con posible error de captura</b> (diferencia de ${nf(SUS)} unidades o más, por ejemplo un código de barras escaneado como cantidad). Se marcan en rojo en el detalle y no suman a las unidades.</div>`:'');
+  const pkB=new Map(pickers.map(p=>[p.u.trim().toLowerCase(),p.b]));
+  const chip=u=>{const b=pkB.get((u||'').toLowerCase());return b?` <span class="chip ${b==='Lavandería'?'light':''}" style="--c:${BCOLOR[b]}">${b}</span>`:''};
+  const selT=$('fTienda').value;
+  $('tdTiendas').innerHTML='<thead><tr><th class="l">Tienda</th><th>Líneas</th><th>Unid. faltantes</th><th>Unid. sobrantes</th><th>Neto</th><th>Pickers</th><th class="l">Picker con más líneas</th></tr></thead><tbody>'+
+    tl.map(x=>{const top=Object.entries(x.u).sort((a,b)=>b[1]-a[1])[0];
+      return `<tr data-t="${esc(x.t)}" class="${x.t===selT?'sel':''}"><td class="l"><b>${esc(x.t)}</b></td><td>${nf(x.n)}${x.sus?' <span title="con posible error de captura">⚠</span>':''}</td><td class="fal">${nf(x.f)}</td><td class="sob">${nf(x.s)}</td><td>${nf(x.f-x.s)}</td><td>${Object.keys(x.u).length}</td><td class="l">${top?esc(top[0])+' ('+top[1]+')':'–'}</td></tr>`}).join('')+
+    `</tbody><tfoot><tr><td class="l">Total</td><td>${nf(rows.length)}</td><td>${nf(fal)}</td><td>${nf(sob)}</td><td>${nf(fal-sob)}</td><td>${new Set(rows.map(r=>r.usuario)).size}</td><td></td></tr></tfoot>`;
+  $('tdTiendas').querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>{$('fTienda').value=$('fTienda').value===tr.dataset.t?'':tr.dataset.t;renderTiendas()});
+  const C=[['fecha_recepciona','Fecha recepción','l'],['tienda','Tienda','l'],['tarima_num','Tarima',''],['sku','SKU','l'],['descripcion','Descripción','l'],
+    ['cantidad_enviada','Enviada',''],['cantidad_recibida','Recibida',''],['inconsistencia','Inconsistencia',''],['usuario','Picker','l']];
+  const numK=['cantidad_enviada','cantidad_recibida','inconsistencia','tarima_num'];
+  const srt=rows.slice().sort((a,b)=>{let x=a[tdSort],y=b[tdSort];if(numK.includes(tdSort)){x=+x||0;y=+y||0;return tdDir*(x-y)}
+    return tdDir*String(x||'').localeCompare(String(y||''))});
+  $('tdCount').textContent=nf(rows.length)+' líneas'+(rows.length!==det.length?' (de '+nf(det.length)+' del mes)':'');
+  $('tdDet').innerHTML='<thead><tr>'+C.map(([k,l,c])=>`<th data-k="${k}" class="${c}">${l}${tdSort===k?(tdDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr></thead><tbody>'+
+    srt.map(r=>{const v=+r.inconsistencia||0;
+      return `<tr class="${isSus(r)?'sus':''}"><td class="l">${fdt(r.fecha_recepciona)}</td><td class="l">${esc(r.tienda||'')}</td><td>${esc(r.tarima_num||'')}</td><td class="l">${esc(r.sku||'')}</td><td class="desc">${esc(r.descripcion||'')}</td>
+      <td>${nf(+r.cantidad_enviada||0)}</td><td>${nf(+r.cantidad_recibida||0)}</td><td class="${isSus(r)?'':v>0?'fal':v<0?'sob':''}">${isSus(r)?'⚠ ':''}${nf(v)}</td><td class="l">${esc(r.usuario||'')}${chip(r.usuario)}</td></tr>`}).join('')+'</tbody>';
+  $('tdDet').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(tdSort===k)tdDir*=-1;else{tdSort=k;tdDir=numK.includes(k)||k==='fecha_recepciona'?-1:1}renderTiendas()});
+}
+['fTienda','fUser','fTipo'].forEach(id=>$(id).onchange=renderTiendas);
+$('fTxt').oninput=renderTiendas;
+$('fClear').onclick=()=>{['fTienda','fUser','fTipo'].forEach(id=>$(id).value='');$('fTxt').value='';renderTiendas()};
+$('fCsv').onclick=()=>{
+  const H=['Tarima_Num','Tienda_Recepciona','Fecha_Recepciona','SKU','Descripcion','Cantidad_Enviada','Cantidad_Recibida','Inconsistencia','Usuario'];
+  const q=v=>{v=v==null?'':String(v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const lines=[H.join(',')].concat(tdFiltered().map(r=>[r.tarima_num,r.tienda,fdt(r.fecha_recepciona),r.sku,r.descripcion,r.cantidad_enviada,r.cantidad_recibida,r.inconsistencia,r.usuario].map(q).join(',')));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}));
+  a.download='inconsistencias_tienda_'+(curCut||'')+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+
+/* ---------- menú ---------- */
+const TABS=['resumen','resultados','tiendas','meses','calculo'];
+function showTab(t){
+  if(!TABS.includes(t)) t='resumen';
+  document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.dataset.tab!==t);
+  $('tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('appView').dataset.tab=t;
+  if(location.hash!=='#'+t) history.replaceState(null,'','#'+t);
+}
+$('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{showTab(b.dataset.t);window.scrollTo({top:$('tabs').offsetTop-4,behavior:'smooth'})});
+window.addEventListener('hashchange',()=>showTab(location.hash.slice(1)));
+showTab(location.hash.slice(1));
 
 /* ---------- sesión ---------- */
 let sbUser=null, channel=null, started=false;
