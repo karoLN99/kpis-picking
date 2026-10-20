@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPIs Picking</title>
+<link rel="icon" href="logo.png">
+<style>
+:root{
+  --sun:#F8B810; --lime:#C0D828; --olive:#787828; --oasis:#EF3A12; --quali:#006028;
+  --leaf:#5BA32B; --forest:#1F3D2B; --paper:#F5F6EA; --card:#FFFFFF; --line:#E1E4CF;
+  --ink:#1F3D2B; --muted:#5E6F5F; --soft-lime:#F0F5CC; --soft-sun:#FEF1C7; --soft-red:#FDE0D8; --soft-green:#D8EBDD;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.4}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px 48px}
+header.top{background:#fff;border-bottom:5px solid var(--lime)}
+header.top .in{max-width:1320px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+header.top img{height:60px;display:block}
+.titlebar{margin:22px 0 18px;display:flex;align-items:stretch;border:3px solid #111;border-radius:40px;background:#fff;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.titlebar .n{background:var(--olive);color:#fff;font-weight:800;font-size:22px;padding:10px 22px;display:flex;align-items:center}
+.titlebar h1{gap:10px;margin:0;font-size:22px;letter-spacing:.5px;padding:10px 22px;flex:1;display:flex;align-items:center;text-transform:uppercase}
+.titlebar .tag{background:var(--olive);color:#fff;font-weight:800;padding:10px 26px;display:flex;align-items:center;font-size:14px;clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%)}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:18px}
+.controls label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.controls input,.controls select{font:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.controls input[type=number]{width:90px}
+.btn{font:inherit;font-weight:700;font-size:14px;padding:9px 14px;border-radius:9px;border:2px solid var(--quali);background:var(--quali);color:#fff;cursor:pointer}
+.btn.alt{background:#fff;color:var(--quali)}
+.btn:hover{filter:brightness(1.08)}
+.spacer{flex:1}
+.status{font-size:12.5px;color:var(--muted)}
+h2{font-size:17px;margin:30px 0 12px;display:flex;align-items:center;gap:10px;text-transform:uppercase;letter-spacing:.6px}
+h2::before{content:"";width:12px;height:22px;border-radius:4px;background:var(--sun)}
+h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:13px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.g5{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi .lbl{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.kpi .val{font-size:34px;font-weight:800;line-height:1.15;margin-top:4px}
+.kpi .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.kpi.k1{border-top:6px solid var(--quali)} .kpi.k2{border-top:6px solid var(--oasis)} .kpi.k3{border-top:6px solid var(--sun)} .kpi.k4{border-top:6px solid var(--lime)}
+.proj{background:var(--forest);color:#fff;border:none}
+.proj .lbl{color:var(--lime)} .proj .sub{color:#cfd9c4}
+.proj .val{color:#fff}
+.proj.p2 .val{color:#FFB199}
+.proj.p3 .val{color:var(--sun)}
+.bar{height:12px;background:#E9ECD6;border-radius:8px;overflow:hidden;margin-top:10px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--quali),var(--leaf),var(--lime));border-radius:8px}
+.monthrow{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px}
+@media(max-width:860px){.monthrow{grid-template-columns:1fr}}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.cal .h{font-size:11px;font-weight:800;text-align:center;color:var(--muted)}
+.cal .d{aspect-ratio:1.25;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid transparent;user-select:none}
+.cal .d.done{background:var(--quali);color:#fff}
+.cal .d.rem{background:var(--soft-lime);color:var(--forest);cursor:pointer}
+.cal .d.half{background:repeating-linear-gradient(135deg,var(--soft-lime) 0 6px,#fff 6px 12px);color:var(--forest);border:2px dashed var(--leaf);cursor:pointer}
+.rot{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px}
+.rot .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:8px}
+.rot .g div{background:var(--paper);border-radius:10px;padding:8px 10px}
+.rot .a{color:var(--quali);font-weight:800}.rot .s{color:#C62E0A;font-weight:800}
+.cal .d.half2{background:repeating-linear-gradient(135deg,var(--quali) 0 6px,#2E8B4F 6px 12px);color:#fff}
+.cal .d.sun{background:#ECEDE2;color:#9AA597}
+.cal .d.off{background:var(--oasis);color:#fff;cursor:pointer}
+.cal .d.today{border-color:var(--sun);box-shadow:0 0 0 2px var(--sun)}
+.cal .e{visibility:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:10px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.daysbox{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+.daysbox div{background:var(--paper);border-radius:12px;padding:10px 12px}
+.daysbox b{display:block;font-size:26px}
+.daysbox span{font-size:12px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px}
+.chip{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;color:#fff;background:var(--c,#888);white-space:nowrap}
+.chip.light{color:var(--forest)}
+.bod h3{margin:0 0 6px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.bod .row{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.bod .row:last-child{border:none}
+.bod .row b{font-variant-numeric:tabular-nums}
+.bod::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}
+.pill{display:inline-block;min-width:44px;text-align:center;font-weight:800;font-size:12.5px;border-radius:20px;padding:2px 9px}
+.pill.l3{background:var(--quali);color:#fff}
+.pill.l2{background:var(--lime);color:var(--forest)}
+.pill.l1{background:var(--sun);color:var(--forest)}
+.pill.l0{background:var(--soft-red);color:#B3260A}
+.pill.na{background:#ECEDE2;color:#8A958A}
+.rank h3{margin:0;font-size:15px;line-height:1.25}
+.rank .desc{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.rank ol{list-style:none;margin:0;padding:0}
+.rank li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #EEF0E0;position:relative}
+.rank li:last-child{border:none}
+.rank .pos{width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.rank .nm{font-weight:700;font-size:14px}
+.rank .nm small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+.rank .mv{font-weight:800;font-size:16px;text-align:right;font-variant-numeric:tabular-nums}
+.rank .mv small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.rank.good{border-top:6px solid var(--quali);--c:var(--quali)}
+.rank.bad{border-top:6px solid var(--oasis);--c:var(--oasis)}
+.rank.opp{border-top:6px solid var(--sun);--c:#D79A00}
+.seg{display:inline-flex;border:2px solid var(--quali);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;font-weight:700;border:none;background:#fff;color:var(--quali);padding:6px 12px;cursor:pointer}
+.seg button.on{background:var(--quali);color:#fff}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:16px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{background:var(--forest);color:#fff;text-align:right;padding:9px 10px;font-size:12px;white-space:nowrap;cursor:pointer;position:sticky;top:0}
+th:first-child,th:nth-child(2),th:nth-child(3){text-align:left}
+th:hover{background:var(--quali)}
+td{padding:7px 10px;border-bottom:1px solid #EEF0E0;text-align:right;white-space:nowrap}
+td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
+tr:nth-child(even) td{background:#FAFBF3}
+tfoot td{font-weight:800;background:var(--soft-lime)!important;border-top:2px solid var(--lime)}
+td.pjc{color:var(--quali);font-weight:700}
+.cellbar{background:linear-gradient(90deg,var(--soft-lime) var(--w),transparent var(--w))}
+.sup{display:flex;flex-wrap:wrap;gap:8px}
+.sup span{background:#fff;border:1px dashed #B9BFA0;border-radius:20px;padding:4px 12px;font-size:13px}
+.sup span b{color:var(--olive)}
+dialog{border:none;border-radius:18px;padding:0;width:min(560px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(31,61,43,.55)}
+dialog .hd{background:var(--forest);color:#fff;padding:14px 20px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+dialog .bd{padding:16px 20px;max-height:62vh;overflow:auto}
+dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.prow{display:grid;grid-template-columns:1fr 140px 34px;gap:8px;margin-bottom:7px}
+.prow input,.prow select{font:inherit;font-size:13.5px;padding:6px 8px;border:1.5px solid var(--line);border-radius:7px;min-width:0}
+.prow button{border:none;background:var(--soft-red);color:#B3260A;border-radius:7px;font-weight:800;cursor:pointer}
+.hist .row{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #EEF0E0}
+.hist .row:last-child{border:none}
+.hist .bar2{height:22px;border-radius:6px;background:var(--quali);min-width:3px;position:relative}
+.hist .bar2.cur{background:repeating-linear-gradient(135deg,var(--sun) 0 7px,#FBD060 7px 14px)}
+.hist .mn{font-weight:800}.hist .mn small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.hist .vv{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.hist .vv small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.hist .del{border:none;background:none;color:#B3260A;cursor:pointer;font-weight:800;margin-left:6px}
+.up{color:var(--quali)}.dn{color:#C62E0A}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.fld input{font:inherit;font-size:14px;text-transform:none;font-weight:400;color:var(--ink)}
+.method{font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.method li{margin:4px 0}
+@media print{.controls,.btn{display:none}}
+
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.who{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.login{max-width:420px;margin:48px auto}
+.login .fld input{padding:9px 10px;border:1.5px solid var(--line);border-radius:8px}
+.fld input[type=file],.fld input[type=date],.fld input[type=month]{padding:7px 8px;border:1.5px solid var(--line);border-radius:8px}
+.controls select{min-width:150px}
+.overlay{position:fixed;inset:0;background:rgba(245,246,234,.7);display:flex;align-items:center;justify-content:center;z-index:50}
+.overlay .card{display:flex;gap:12px;align-items:center;font-weight:700}
+.spin{width:20px;height:20px;border:3px solid var(--line);border-top-color:var(--quali);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--forest);color:#fff;padding:11px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:60;max-width:min(560px,92vw);font-size:14px}
+[hidden]{display:none!important}
+@media(max-width:600px){.wrap{padding:0 16px 40px}.g3,.g4,.g5{grid-template-columns:1fr}.kpi .val{font-size:28px}.titlebar h1{font-size:16px}.titlebar .tag{display:none}.daysbox{grid-template-columns:repeat(2,1fr)}.prow{grid-template-columns:1fr 110px 34px}header.top img{height:40px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <img alt="Tiendas Oriente · Centro de Distribución de Oriente · Oasis · Quali" src="logo.png">
+  <div class="who" id="who" hidden><span class="status" id="hdrStatus"></span><button class="btn alt sm" id="btnOut">Cerrar sesión</button></div>
+</div></header>
+
+<!-- ======== Inicio de sesión ======== -->
+<div class="wrap" id="loginView" hidden>
+  <form class="card login" id="loginForm">
+    <h2 style="margin-top:0">Tablero de picking</h2>
+    <p class="note" style="margin-top:0">Inicia sesión con el correo y la contraseña que te asignaron.</p>
+    <label class="fld">Correo<input type="email" id="lEmail" autocomplete="username" required></label>
+    <label class="fld">Contraseña<input type="password" id="lPass" autocomplete="current-password" required></label>
+    <button class="btn" type="submit" style="width:100%">Entrar</button>
+    <div class="status" id="lMsg" style="margin-top:10px"></div>
+  </form>
+</div>
+
+<!-- ======== Tablero ======== -->
+<div class="wrap" id="appView" hidden>
+  <div class="titlebar"><div class="n">KPI</div><h1>Tablero de picking <span id="mesTxt"></span></h1><div class="tag" id="tagCut"></div></div>
+
+  <div class="controls">
+    <label>Fecha de corte<select id="cut"></select></label>
+    <label>Base de SKUs/hora<span class="seg" id="skuMode" style="margin-top:0"><button data-m="lin" class="on">Líneas/hora</button><button data-m="sku">SKUs únicos/hora</button></span></label>
+    <label>Horas/jornada (solo si falta dato de tiempo)<input type="number" id="hrs" min="1" max="12" step="0.5" value="7.67"></label>
+    <button class="btn" id="btnLoad">⬆ Cargar datos del día</button>
+    <button class="btn alt" id="btnPick">Editar listado de pickers</button>
+    <span class="spacer"></span>
+    <span class="status" id="srcStatus"></span>
+  </div>
+
+  <div id="empty" class="card" hidden><b>Aún no hay datos cargados.</b><div class="note">Usa «Cargar datos del día» y selecciona los dos archivos de Excel (resumen de inconsistencias y tiempo de picking).</div></div>
+
+  <div id="dash">
+  <h2>Acumulado del área <small id="areaNote"></small></h2>
+  <div class="grid g4">
+    <div class="card kpi k1"><div class="lbl">Total picking acumulado</div><div class="val" id="tPick">–</div><div class="sub" id="tPickSub"></div></div>
+    <div class="card kpi k2"><div class="lbl">Total inconsistencias</div><div class="val" id="tInc">–</div><div class="sub" id="tIncSub"></div></div>
+    <div class="card kpi k3"><div class="lbl">Ratio (picks / inconsistencia)</div><div class="val" id="tRatio">–</div><div class="sub" id="tRatioSub"></div></div>
+    <div class="card kpi k4"><div class="lbl">Ritmo diario del área</div><div class="val" id="tDay">–</div><div class="sub" id="tDaySub"></div></div>
+  </div>
+
+  <h2>Proyección de cierre <small>ritmo actual × días hábiles del mes</small></h2>
+  <div class="grid g4">
+    <div class="card kpi proj p1"><div class="lbl">Picking proyectado al cierre</div><div class="val" id="pPick">–</div><div class="sub" id="pPickSub"></div></div>
+    <div class="card kpi proj p2"><div class="lbl">Inconsistencias proyectadas</div><div class="val" id="pInc">–</div><div class="sub" id="pIncSub"></div></div>
+    <div class="card kpi proj p3"><div class="lbl">Ratio proyectado</div><div class="val" id="pRatio">–</div><div class="sub" id="pRatioSub"></div></div>
+    <div class="card kpi proj"><div class="lbl">Avance del mes</div><div class="val" id="pAvance">–</div><div class="sub" id="pAvanceSub"></div><div class="bar"><i id="pBar" style="width:0"></i></div></div>
+  </div>
+
+  <div class="monthrow" style="margin-top:14px">
+    <div class="card">
+      <div class="lbl" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)">Calendario laboral</div>
+      <div class="cal" id="cal"></div>
+      <div class="legend"><span style="--c:var(--quali)">Trabajado</span><span style="--c:var(--soft-lime)">Por trabajar</span><span style="--c:#ECEDE2">Domingo (descanso)</span><span style="--c:var(--leaf)">Medio día (½ grupo)</span><span style="--c:var(--oasis)">Asueto</span></div>
+      <div class="note">Toca un día para marcarlo o quitarlo como asueto (se guarda para todos).</div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)">Días hábiles equivalentes (equipo completo)</div>
+      <div class="daysbox">
+        <div><b id="dTot">–</b><span>del mes</span></div>
+        <div><b id="dEl">–</b><span>transcurridos</span></div>
+        <div><b id="dRem">–</b><span>por trabajar</span></div>
+        <div><b id="dAs">–</b><span>asuetos</span></div>
+      </div>
+      <div class="note" id="projNote"></div>
+      <div class="rot" id="rotPanel" hidden></div>
+    </div>
+  </div>
+
+  <h2>Resultado por bodega <small>pickers oficiales</small></h2>
+  <div class="grid g5" id="bodegas"></div>
+
+  <h2>Rankings de pickers <small>pickers</small></h2>
+  <div style="margin:-2px 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span class="status">Medir inconsistencias por:</span>
+    <div class="seg" id="incMode"><button data-m="cnt" class="on">Cantidad</button><button data-m="pct">% sobre picks</button></div>
+  </div>
+  <div class="grid g3" id="rankings"></div>
+
+  <h2>Detalle por picker <small>Con filtro</small></h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+
+  <h2>Apoyo intermitente <small>fuera de rankings; sí suman al acumulado del área</small></h2>
+  <div class="sup" id="sup"></div>
+  </div>
+
+  <h2>Meses anteriores <small>solo resumen · el mes en curso va como proyección</small></h2>
+  <div style="margin:-2px 0 12px"><button class="btn alt" id="btnHist">+ Agregar mes cerrado</button></div>
+  <div class="card hist" id="histBox"></div>
+  <div class="tablewrap" style="margin-top:14px"><table id="histTbl"></table></div>
+  <div class="tablewrap" style="margin-top:14px"><table id="histTbl2"></table></div>
+
+  <h2>Cómo se calcula</h2>
+  <div class="method"><ul>
+    <li><b>Ratio</b> = picking acumulado ÷ inconsistencias de embarque (a más alto, mejor). Se compara contra la escala de su bodega (700/350/175 Variedades, 800/400/200 Lavandería, 500/250/125 Bebidas, 300/150/75 Harinas) para obtener la ponderación 35 / 20 / 10 / 0 %.</li>
+    <li><b>Meta de ratio</b> = ratio ÷ escala máxima de la bodega (100 % = alcanzó el nivel de 35 %). Picking por Unidad usa la misma escala de ratio que Variedades (700/350/175).</li>
+    <li><b>SKUs/hora</b> = líneas pickeadas ÷ horas efectivas del archivo de tiempos (horas = líneas ÷ líneas_por_hora), sumando los días del mes hasta la fecha de corte. Alternativa: SKUs únicos ÷ horas, con el selector superior. Escala por bodega para ponderar 15 / 8 / 0 %.</li>
+    <li><b>Fin de semana rotativo</b> (todo el mes): cada sábado y domingo cuenta ½ día equivalente (la mitad del grupo trabaja cada día); cada picker trabaja un día del fin de semana, así que su proyección usa los mismos días equivalentes.</li>
+    <li><b>Proyección</b>: área = total acumulado ÷ días hábiles transcurridos × días hábiles del mes. Picker = su promedio por día trabajado × (días trabajados + días hábiles restantes), suponiendo asistencia completa.</li>
+    <li><b>Datos</b>: cada carga diaria guarda una foto del acumulado del mes con su fecha de corte. Volver a cargar el mismo día reemplaza esa foto; el selector «Fecha de corte» permite ver cualquier día ya cargado. El resumen del mes se guarda solo y pasa a «Meses anteriores» cuando cambia el mes.</li>
+  </ul></div>
+</div>
+
+<!-- ======== Diálogo: carga diaria ======== -->
+<dialog id="dl">
+  <div class="hd"><span>Cargar datos del día</span><button class="btn alt" style="padding:3px 10px" id="dlClose">✕</button></div>
+  <div class="bd">
+    <label class="fld">Archivos de Excel (puedes seleccionar los dos a la vez)<input type="file" id="dlFiles" accept=".xlsx,.xls,.csv" multiple></label>
+    <div id="dlInfo" class="note" style="margin:-4px 0 12px"></div>
+    <label class="fld">Fecha de corte<input type="date" id="dlCut"></label>
+    <div class="status" id="dlMsg">Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.</div>
+  </div>
+  <div class="ft"><button class="btn" id="dlSave" disabled>Guardar en la base de datos</button></div>
+</dialog>
+
+<dialog id="dh">
+  <div class="hd"><span>Agregar mes cerrado</span><button class="btn alt" style="padding:3px 10px" id="dhClose">✕</button></div>
+  <div class="bd">
+    <label class="fld">Mes<input type="month" id="hMonth"></label>
+    <label class="fld">Resumen de picking del mes (obligatorio)<input type="file" id="hF1" accept=".xlsx,.xls,.csv"></label>
+    <label class="fld">Tiempos / SKUs por hora del mes (opcional)<input type="file" id="hF2" accept=".xlsx,.xls,.csv"></label>
+    <div class="status" id="hMsg"></div>
+  </div>
+  <div class="ft"><button class="btn" id="hSave">Guardar resumen</button></div>
+</dialog>
+<dialog id="dlg">
+  <div class="hd"><span>Listado oficial de pickers</span><button class="btn alt" style="padding:3px 10px" id="dClose">✕</button></div>
+  <div class="bd"><div id="prows"></div><button class="btn alt" id="pAdd" style="margin-top:6px">+ Agregar picker</button>
+    <datalist id="users"></datalist></div>
+  <div class="ft"><span class="status" id="pMsg" style="margin-right:auto"></span><button class="btn" id="pSave">Guardar</button></div>
+</dialog>
+
+<div class="overlay" id="busy" hidden><div class="card"><span class="spin"></span><span id="busyTxt">Cargando…</span></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* =====================================================================
+   CONFIGURACIÓN · pega aquí los datos de tu proyecto de Supabase
+   (Supabase > Project Settings > API). La "anon public key" está hecha
+   para ir en páginas web: los datos quedan protegidos por el inicio de
+   sesión y las políticas de seguridad (RLS) de la base de datos.
+   ===================================================================== */
+const SUPABASE_URL = 'https://zsleaiirqktvnxfozbwo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbGVhaWlycWt0dm54Zm96YndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NDg5ODcsImV4cCI6MjEwODAyNDk4N30.DTcyN-BTN0A3RIcg7p8szL59eA7Pdl33_mWY07iBVig
+';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BODEGAS = ['Variedades','Lavandería','Bebidas','Harinas','Pick Uni'];
+const BCOLOR = {'Variedades':'#787828','Lavandería':'#F8B810','Bebidas':'#EF3A12','Harinas':'#006028','Pick Uni':'#5BA32B'};
+const META = {
+  'Variedades':{ratio:[[700,35],[350,20],[175,10]],sku:[[13,15],[10,8]]},
+  'Lavandería':{ratio:[[800,35],[400,20],[200,10]],sku:[[12,15],[9,8]]},
+  'Bebidas':{ratio:[[500,35],[250,20],[125,10]],sku:[[9,15],[7,8]]},
+  'Harinas':{ratio:[[300,35],[150,20],[75,10]],sku:[[7,15],[5,8]]},
+  'Pick Uni':{ratio:[[700,35],[350,20],[175,10]],sku:[[10,15],[8,8]]}
+};
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const nf=(v,d=0)=>isFinite(v)?v.toLocaleString('es-GT',{minimumFractionDigits:d,maximumFractionDigits:d}):'∞';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fd=v=>Number.isInteger(v)?String(v):v.toFixed(1);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
+const mesLabel=key=>{const [y,m]=key.split('-').map(Number);return MESES[m-1][0].toUpperCase()+MESES[m-1].slice(1)+' '+y};
+const fechaCorta=iso=>{const [y,m,d]=iso.split('-').map(Number);return d+'-'+MESES[m-1].slice(0,3)+'-'+y};
+
+let data = [];            // filas del resumen para la fecha de corte elegida (+ horas y skus)
+let pickers = [];         // [{u,b}]
+let asuetos = new Set();  // 'AAAA-MM-DD'
+let hist = [];            // meses cerrados [{key,label,...,auto}]
+let cortes = [];          // fechas de corte disponibles, más reciente primero
+let curCut = null;        // 'AAAA-MM-DD'
+let hasTime = false;
+let lastLoad = null;
+let incMode = 'cnt';
+let skuMode = 'lin';
+const wkMode = 'rotall';
+let sortKey = 'skuh', sortDir = -1;
+let lastCur = null;
+
+/* ---------- utilidades de interfaz ---------- */
+function busy(on,txt){$('busy').hidden=!on; if(txt) $('busyTxt').textContent=txt;}
+let toastT=null;
+function toast(msg,ms=4000){const t=$('toast');t.innerHTML=msg;t.hidden=false;clearTimeout(toastT);if(ms)toastT=setTimeout(()=>t.hidden=true,ms);}
+function check({data,error}){if(error) throw new Error(error.message);return data;}
+
+/* ---------- lectura de base de datos ---------- */
+async function fetchAll(build){
+  // Supabase devuelve como máximo 1000 filas por consulta: se pide por páginas
+  const out=[]; const step=1000;
+  for(let from=0;;from+=step){
+    const rows=check(await build().range(from,from+step-1));
+    out.push(...rows); if(rows.length<step) break;
+  }
+  return out;
+}
+
+async function loadConfig(){
+  const [pk,as,hi,co,ca]=await Promise.all([
+    sb.from('pickers').select('username,bodega').order('username'),
+    sb.from('asuetos').select('fecha'),
+    sb.from('historial').select('mes,resumen,auto'),
+    sb.from('cortes').select('fecha_corte').order('fecha_corte',{ascending:false}),
+    sb.from('cargas').select('fecha_corte,usuario,creado').order('creado',{ascending:false}).limit(1)
+  ]);
+  pickers=check(pk).map(r=>({u:r.username,b:r.bodega}));
+  asuetos=new Set(check(as).map(r=>r.fecha));
+  hist=check(hi).map(r=>({...r.resumen,key:r.mes,label:mesLabel(r.mes),auto:r.auto}));
+  cortes=check(co).map(r=>r.fecha_corte);
+  lastLoad=check(ca)[0]||null;
+}
+
+async function loadCut(cut){
+  curCut=cut;
+  if(!cut){data=[];hasTime=false;return}
+  const first=cut.slice(0,8)+'01';
+  const [res,tim]=await Promise.all([
+    fetchAll(()=>sb.from('resumen_inconsistencias').select('username,dias,cant_pick,inconsistencias').eq('fecha_corte',cut).order('username')),
+    fetchAll(()=>sb.from('tiempo_picking').select('username,fecha,total_lineas_pickeadas,total_skus_pickeados,lineas_por_hora').gte('fecha',first).lte('fecha',cut).order('username').order('fecha'))
+  ]);
+  const agg=aggTime(tim);
+  hasTime=Object.keys(agg).length>0;
+  data=res.map(r=>({username:r.username,dias:r.dias,cant_pick:r.cant_pick,inconsistencias:r.inconsistencias,
+    horas:agg[r.username]?agg[r.username].horas:0, skus:agg[r.username]?agg[r.username].skus:null}));
+}
+
+function aggTime(rows){
+  const agg={};
+  rows.forEach(r=>{ if(!r.username||!(+r.lineas_por_hora>0)) return;
+    const a=agg[r.username]||(agg[r.username]={horas:0,skus:0});
+    a.horas+=(+r.total_lineas_pickeadas||0)/(+r.lineas_por_hora); a.skus+=+r.total_skus_pickeados||0;});
+  return agg;
+}
+
+async function refresh(cut){
+  busy(true,'Cargando datos…');
+  try{
+    await loadConfig();
+    let c=cut&&cortes.includes(cut)?cut:cortes[0]||null;
+    $('cut').innerHTML=cortes.map(f=>`<option value="${f}">${fechaCorta(f)}</option>`).join('');
+    if(c) $('cut').value=c;
+    await loadCut(c);
+    render();
+  }catch(err){toast('No se pudieron leer los datos: '+esc(err.message),0)}
+  finally{busy(false)}
+}
+
+/* ---------- calendario ---------- */
+function calendar(mode){
+  mode=mode||wkMode;
+  const [y,m,d] = curCut.split('-').map(Number);
+  const dim = new Date(y,m,0).getDate();
+  let tot=0,el=0,as=0;
+  const cells=[];
+  for(let i=1;i<=dim;i++){
+    const dow=new Date(y,m-1,i).getDay();
+    const sun=dow===0, sat=dow===6, fut=i>d;
+    const rot=mode==='rotall'||(mode==='rot'&&fut);
+    const off=asuetos.has(ymd(y,m,i))&&(!sun||rot);
+    let w=0;
+    if(!off){ if(!sun) w=(rot&&sat)?0.5:1; else w=rot?0.5:0; }
+    if(off) as++;
+    tot+=w; if(!fut) el+=w;
+    cells.push({i,sun,off,w,half:w===0.5,done:w>0&&!fut,today:i===d,dow});
+  }
+  return {y,m,d,dim,tot,el,rem:tot-el,as,cells,mode};
+}
+
+/* ---------- métricas ---------- */
+function tier(list,v){if(!list)return null;for(const [t,p] of list) if(v>=t) return p;return 0}
+function enrich(cal){
+  const set = new Map(pickers.map(p=>[p.u.trim().toLowerCase(),p.b]));
+  const hrsFix = parseFloat($('hrs').value)||7.67;
+  return data.map(r=>{
+    const key=r.username.trim().toLowerCase();
+    const b=set.get(key)||null;
+    const picks=+r.cant_pick||0, inc=+r.inconsistencias||0, dias=+r.dias||0;
+    const ppd=dias?picks/dias:0;
+    const horas=(+r.horas>0)?+r.horas:dias*hrsFix;
+    const num=(skuMode==='sku'&&r.skus!=null)?+r.skus:picks;
+    const skuh=horas?num/horas:0;
+    const incPct=picks?inc/picks*100:0;
+    const ratio=inc>0?picks/inc:Infinity;
+    const m=b?META[b]:null;
+    const top=m&&m.ratio?m.ratio[0][0]:null;
+    const meta=top?(ratio/top*100):null;
+    const pr=m&&m.ratio?tier(m.ratio,ratio):null;
+    const ps=m?tier(m.sku,skuh):null;
+    const pf=dias?(dias+cal.rem):0;
+    return {u:r.username,b,picks,inc,dias,ppd,skuh,horas,num,incPct,ratio,meta,pr,ps,tot:(pr||0)+(ps||0),
+            projP:ppd*pf, projI:dias?inc/dias*pf:0, official:!!b};
+  });
+}
+
+/* ---------- render ---------- */
+function render(){
+  const loaded=lastLoad?` · Última carga: corte ${fechaCorta(lastLoad.fecha_corte)}, ${new Date(lastLoad.creado).toLocaleString('es-GT',{dateStyle:'short',timeStyle:'short'})}${lastLoad.usuario?' por '+esc(lastLoad.usuario):''}`:'';
+  $('hdrStatus').innerHTML=esc(sbUser||'')+loaded;
+  if(!curCut){
+    $('empty').hidden=false;$('dash').hidden=true;$('mesTxt').textContent='';$('tagCut').textContent='Sin datos';
+    $('srcStatus').textContent='';lastCur=null;renderHist();return;
+  }
+  $('empty').hidden=true;$('dash').hidden=false;
+  const cal=calendar();
+  $('mesTxt').textContent='· '+MESES[cal.m-1]+' '+cal.y;
+  $('tagCut').textContent='Corte: '+cal.d+' de '+MESES[cal.m-1];
+  renderCal(cal);
+  const rows=enrich(cal);
+  const off=rows.filter(r=>r.official);
+  const sup=rows.filter(r=>!r.official);
+
+  // totales del área (todos los usuarios del Excel)
+  const sP=rows.reduce((a,r)=>a+r.picks,0), sI=rows.reduce((a,r)=>a+r.inc,0);
+  const ratio=sI?sP/sI:Infinity;
+  const perDay=cal.el?sP/cal.el:0, incDay=cal.el?sI/cal.el:0;
+  $('tPick').textContent=nf(sP);
+  $('tPickSub').textContent='Pickers oficiales: '+nf(off.reduce((a,r)=>a+r.picks,0))+' · apoyos: '+nf(sup.reduce((a,r)=>a+r.picks,0));
+  $('tInc').textContent=nf(sI);
+  $('tIncSub').textContent='Pickers oficiales: '+nf(off.reduce((a,r)=>a+r.inc,0))+' · apoyos: '+nf(sup.reduce((a,r)=>a+r.inc,0));
+  $('tRatio').textContent=nf(ratio,1);
+  $('tRatioSub').textContent='Tasa de error: '+nf(sP?sI/sP*100:0,2)+' % de los picks';
+  $('tDay').textContent=nf(perDay);
+  $('tDaySub').textContent='picks por día hábil · '+nf(incDay,1)+' inconsistencias/día';
+  $('areaNote').textContent='incluye a todos los usuarios del archivo ('+rows.length+')';
+
+  const pP=perDay*cal.tot, pI=incDay*cal.tot;
+  $('pPick').textContent=nf(pP);
+  $('pPickSub').textContent='faltan ~'+nf(pP-sP)+' picks en '+fd(cal.rem)+' días hábiles';
+  $('pInc').textContent=nf(pI);
+  $('pIncSub').textContent='faltan ~'+nf(pI-sI)+' inconsistencias a este ritmo';
+  $('pRatio').textContent=nf(pI?pP/pI:Infinity,1);
+  $('pRatioSub').textContent='vs. '+nf(ratio,1)+' acumulado hoy';
+  const av=cal.tot?cal.el/cal.tot*100:0;
+  $('pAvance').textContent=nf(av,0)+' %';
+  $('pAvanceSub').textContent=fd(cal.el)+' de '+fd(cal.tot)+' días hábiles';
+  $('pBar').style.width=av+'%';
+  $('dTot').textContent=fd(cal.tot);$('dEl').textContent=fd(cal.el);$('dRem').textContent=fd(cal.rem);$('dAs').textContent=cal.as;
+  $('projNote').textContent='Proyección: '+nf(perDay)+' picks por día equivalente × '+fd(cal.tot)+' días = '+nf(pP)+'. Esquema fijo: todos los fines de semana son rotativos (½ del grupo el sábado, ½ el domingo), así que cada sábado y domingo cuenta ½ día.';
+  renderRot(off,cal);
+
+  renderBodegas(off,cal);
+  renderRankings(off);
+  renderTable(off);
+  $('sup').innerHTML=sup.map(r=>`<span>${esc(r.u)} · <b>${nf(r.picks)}</b> picks · ${r.inc} inc.</span>`).join('')||'<span>Ninguno</span>';
+  const missing=pickers.filter(p=>!data.some(r=>r.username.trim().toLowerCase()===p.u.trim().toLowerCase()));
+  { const H=off.reduce((a,r)=>a+r.horas,0), N=off.reduce((a,r)=>a+r.num,0), bd={};
+    BODEGAS.forEach(b=>{const g=off.filter(r=>r.b===b); if(!g.length)return; const P=g.reduce((a,r)=>a+r.projP,0),I=g.reduce((a,r)=>a+r.projI,0),h=g.reduce((a,r)=>a+r.horas,0),n=g.reduce((a,r)=>a+r.num,0); bd[b]={picks:P,inc:I,ratio:I?P/I:null,skuh:h?n/h:0}});
+    lastCur={key:ymd(cal.y,cal.m,1).slice(0,7),label:mesLabel(ymd(cal.y,cal.m,1)),picks:pP,inc:pI,perDay:perDay,skuh:H?N/H:0,bod:bd}; renderHist(); }
+  $('srcStatus').textContent='Resumen con corte al '+fechaCorta(curCut)+' · '+(hasTime?'Tiempos del 1 al '+cal.d+' de '+MESES[cal.m-1]:'Sin dato de tiempo: se usa '+($('hrs').value||7.67)+' h/jornada')+(missing.length?' · Sin datos: '+missing.map(m=>m.u).join(', '):'');
+}
+
+function renderRot(off,cal){
+  const p=$('rotPanel');
+  if(cal.mode==='norm'){p.hidden=true;return}
+  p.hidden=false;
+  const halfDays=cal.cells.filter(c=>c.half).map(c=>c.i);
+  const short=u=>{const [a,b]=u.split('.');return esc(a)+(b?' '+esc(b[0].toUpperCase())+'.':'')};
+  let h='<b>Propuesta de grupos</b> (alternando por nombre dentro de cada bodega). Días de medio equipo: '+(halfDays.join(', ')||'ninguno')+'.<div class="g">';
+  BODEGAS.forEach(b=>{
+    const g=off.filter(r=>r.b===b).sort((x,y)=>x.u.localeCompare(y.u));
+    if(!g.length) return;
+    const A=g.filter((_,i)=>i%2===0), B=g.filter((_,i)=>i%2===1);
+    h+=`<div><b style="color:${BCOLOR[b]==='#F8B810'?'#B07F00':BCOLOR[b]}">${b}</b><br><span class="a">Sábado (${A.length}):</span> ${A.map(r=>short(r.u)).join(', ')}<br><span class="s">Domingo (${B.length}):</span> ${B.length?B.map(r=>short(r.u)).join(', '):'<i>sin cobertura</i>'}</div>`;
+  });
+  h+='</div>';
+  p.innerHTML=h;
+}
+function renderCal(cal){
+  const names=['L','M','M','J','V','S','D'];
+  let h=names.map(n=>`<div class="h">${n}</div>`).join('');
+  const first=new Date(cal.y,cal.m-1,1).getDay();
+  for(let i=0;i<(first+6)%7;i++) h+='<div class="e"></div>';
+  for(const c of cal.cells){
+    const cls=c.off?'off':c.w===0?'sun':c.done?(c.half?'done half2':'done'):c.half?'half':'rem';
+    h+=`<div class="d ${cls}${c.today?' today':''}" data-d="${c.i}" title="${c.off?'Asueto':c.w===0?'Domingo (descanso)':c.done?(c.half?'Trabajado (½ del grupo)':'Trabajado'):c.half?'Medio día (½ del grupo)':'Por trabajar'}">${c.i}</div>`;
+  }
+  $('cal').innerHTML=h;
+  $('cal').querySelectorAll('.d.rem,.d.off,.d.done,.d.half').forEach(el=>el.onclick=async()=>{
+    const f=ymd(cal.y,cal.m,+el.dataset.d);
+    const was=asuetos.has(f);
+    try{
+      if(was){check(await sb.from('asuetos').delete().eq('fecha',f));asuetos.delete(f)}
+      else{check(await sb.from('asuetos').upsert({fecha:f}));asuetos.add(f)}
+      render();
+    }catch(err){toast('No se pudo guardar el asueto: '+esc(err.message))}
+  });
+}
+
+function pill(v,max){
+  if(v===null||v===undefined) return '<span class="pill na">n/d</span>';
+  const cls = v>=max?'l3':v>0?(v>=max*0.5?'l2':'l1'):'l0';
+  return `<span class="pill ${cls}">${v}%</span>`;
+}
+
+function renderBodegas(off,cal){
+  $('bodegas').innerHTML=BODEGAS.map(b=>{
+    const g=off.filter(r=>r.b===b);
+    if(!g.length) return '';
+    const P=g.reduce((a,r)=>a+r.picks,0), I=g.reduce((a,r)=>a+r.inc,0), H=g.reduce((a,r)=>a+r.horas,0), N=g.reduce((a,r)=>a+r.num,0);
+    const ratio=I?P/I:Infinity, skuh=H?N/H:0;
+    const m=META[b];
+    const pr=m.ratio?tier(m.ratio,ratio):null, ps=tier(m.sku,skuh);
+    const projP=g.reduce((a,r)=>a+r.projP,0), projI=g.reduce((a,r)=>a+r.projI,0);
+    return `<div class="card bod" style="--c:${BCOLOR[b]}">
+      <h3>${b}<span class="chip ${b==='Lavandería'?'light':''}" style="--c:${BCOLOR[b]}">${g.length} picker${g.length>1?'s':''}</span></h3>
+      <div class="row"><span>Picking</span><b>${nf(P)}</b></div>
+      <div class="row"><span>Inconsistencias</span><b>${nf(I)}</b></div>
+      <div class="row"><span>Ratio</span><b>${nf(ratio,1)} ${pill(pr,35)}</b></div>
+      <div class="row"><span>SKUs/hora prom.</span><b>${nf(skuh,1)} ${pill(ps,15)}</b></div>
+      <div class="row"><span>Proy. picking</span><b>${nf(projP)}</b></div>
+      <div class="row"><span>Proy. inconsist.</span><b>${nf(projI)}</b></div>
+    </div>`}).join('');
+}
+
+function rankCard(title,desc,cls,list,val,sub){
+  return `<div class="card rank ${cls}"><h3>${title}</h3><div class="desc">${desc}</div><ol>${
+    list.map((r,i)=>`<li><span class="pos">${i+1}</span>
+      <span class="nm">${esc(r.u)}<small>${r.b}</small></span>
+      <span class="mv">${val(r)}<small>${sub(r)}</small></span></li>`).join('')}</ol></div>`;
+}
+function renderRankings(off){
+  const inc=incMode==='cnt'
+    ? {lo:(a,b)=>a.inc-b.inc||a.incPct-b.incPct, hi:(a,b)=>b.inc-a.inc||b.incPct-a.incPct}
+    : {lo:(a,b)=>a.incPct-b.incPct||a.inc-b.inc, hi:(a,b)=>b.incPct-a.incPct||b.inc-a.inc};
+  const incVal=r=>incMode==='cnt'?nf(r.inc):nf(r.incPct,2)+'%';
+  const incSub=r=>incMode==='cnt'?nf(r.incPct,2)+'% de '+nf(r.picks)+' picks':nf(r.inc)+' inc. · '+nf(r.picks)+' picks';
+  const wm=off.filter(r=>r.meta!==null);
+  const T=(arr,fn)=>arr.slice().sort(fn).slice(0,5);
+  const ratioTxt=r=>isFinite(r.ratio)?nf(r.ratio,1):'∞';
+  const html=[
+    rankCard('Top 5 · SKUs por hora','Mayor productividad','good',T(off,(a,b)=>b.skuh-a.skuh),r=>nf(r.skuh,1),r=>nf(r.ppd,0)+' picks/día'),
+    rankCard('Top 5 · Menos inconsistencias','Menor '+(incMode==='cnt'?'cantidad':'% sobre picks')+' de inconsistencias','good',T(off,inc.lo),incVal,incSub),
+    rankCard('Top 5 · Meta de ratio','Mayor cumplimiento vs. escala máxima de su bodega','good',T(wm,(a,b)=>b.meta-a.meta),r=>isFinite(r.meta)?nf(r.meta,0)+'%':'∞',r=>'ratio '+ratioTxt(r)),
+    rankCard('Mayor oportunidad · Ratio','Ratio más bajo (picks por inconsistencia)','opp',T(off,(a,b)=>a.ratio-b.ratio),ratioTxt,r=>nf(r.inc)+' inc. / '+nf(r.picks)+' picks'),
+    rankCard('Top 5 · Más inconsistencias','Mayor '+(incMode==='cnt'?'cantidad':'% sobre picks')+' de inconsistencias','bad',T(off,inc.hi),incVal,incSub),
+    rankCard('Mayor oportunidad · Meta de ratio','Menor cumplimiento vs. escala máxima de su bodega','opp',T(wm,(a,b)=>a.meta-b.meta),r=>nf(r.meta,0)+'%',r=>'ratio '+ratioTxt(r))
+  ];
+  $('rankings').innerHTML=html.join('');
+}
+
+const COLS=[
+ ['u','Usuario'],['b','Bodega'],['dias','Días'],['picks','Picks'],['inc','Inc.'],['incPct','% inc.'],['ppd','Picks/día'],['skuh','SKUs/h'],
+ ['ratio','Ratio'],['meta','Meta ratio'],['pr','Pond. ratio'],['ps','Pond. SKUs/h'],['tot','Pond. total'],['projP','Proy. picks'],['projI','Proy. inc.']
+];
+function renderTable(off){
+  const s=off.slice().sort((a,b)=>{
+    let x=a[sortKey],y=b[sortKey];
+    if(x===null||x===undefined) x=-Infinity; if(y===null||y===undefined) y=-Infinity;
+    if(typeof x==='string') return sortDir*x.localeCompare(y);
+    return sortDir*((x>y)-(x<y));
+  });
+  const maxS=Math.max(...off.map(r=>r.skuh),1), maxP=Math.max(...off.map(r=>r.picks),1);
+  const head='<thead><tr><th>#</th>'+COLS.map(([k,l])=>`<th data-k="${k}">${l}${sortKey===k?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr></thead>';
+  const body=s.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.u)}</b></td>
+    <td><span class="chip ${r.b==='Lavandería'?'light':''}" style="--c:${BCOLOR[r.b]}">${r.b}</span></td>
+    <td>${r.dias}</td><td class="cellbar" style="--w:${r.picks/maxP*100}%">${nf(r.picks)}</td><td>${r.inc}</td><td>${nf(r.incPct,2)}</td>
+    <td>${nf(r.ppd,1)}</td><td class="cellbar" style="--w:${r.skuh/maxS*100}%">${nf(r.skuh,1)}</td>
+    <td>${isFinite(r.ratio)?nf(r.ratio,1):'∞'}</td><td>${r.meta===null?'n/d':isFinite(r.meta)?nf(r.meta,0)+'%':'∞'}</td>
+    <td>${pill(r.pr,35)}</td><td>${pill(r.ps,15)}</td><td><b>${r.tot}%</b></td>
+    <td class="pjc">${nf(r.projP)}</td><td class="pjc">${nf(r.projI,1)}</td></tr>`).join('');
+  const P=off.reduce((a,r)=>a+r.picks,0),I=off.reduce((a,r)=>a+r.inc,0);
+  const foot=`<tfoot><tr><td></td><td>Total pickers</td><td></td><td></td><td>${nf(P)}</td><td>${nf(I)}</td><td>${nf(P?I/P*100:0,2)}</td><td></td><td></td><td>${nf(I?P/I:Infinity,1)}</td><td></td><td></td><td></td><td></td><td>${nf(off.reduce((a,r)=>a+r.projP,0))}</td><td>${nf(off.reduce((a,r)=>a+r.projI,0),1)}</td></tr></tfoot>`;
+  $('tbl').innerHTML=head+'<tbody>'+body+'</tbody>'+foot;
+  $('tbl').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=(k==='u'||k==='b'||k==='inc'||k==='incPct')?1:-1}
+    renderTable(off);
+  });
+}
+
+/* ---------- editor de pickers (compartido) ---------- */
+let draft=[];
+function drawRows(){
+  $('prows').innerHTML=draft.map((p,i)=>`<div class="prow"><input list="users" value="${esc(p.u)}" data-i="${i}" data-f="u" placeholder="usuario">
+    <select data-i="${i}" data-f="b">${BODEGAS.map(b=>`<option ${b===p.b?'selected':''}>${b}</option>`).join('')}</select>
+    <button data-del="${i}" title="Quitar">✕</button></div>`).join('');
+  $('prows').querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{draft[+el.dataset.i][el.dataset.f]=el.value.trim()});
+  $('prows').querySelectorAll('[data-del]').forEach(el=>el.onclick=()=>{draft.splice(+el.dataset.del,1);drawRows()});
+}
+$('btnPick').onclick=()=>{
+  draft=pickers.map(p=>({...p}));
+  $('users').innerHTML=data.map(r=>`<option value="${esc(r.username)}">`).join('');
+  $('pMsg').textContent='Los cambios se guardan para todos los usuarios.';
+  drawRows();$('dlg').showModal();
+};
+$('pAdd').onclick=()=>{draft.push({u:'',b:'Variedades'});drawRows()};
+$('pSave').onclick=async()=>{
+  const next=new Map();
+  draft.filter(p=>p.u).forEach(p=>next.set(p.u.trim().toLowerCase(),p.b));
+  const gone=pickers.map(p=>p.u).filter(u=>!next.has(u.trim().toLowerCase()));
+  try{
+    $('pMsg').textContent='Guardando…';
+    if(gone.length) check(await sb.from('pickers').delete().in('username',gone));
+    if(next.size) check(await sb.from('pickers').upsert([...next].map(([username,bodega])=>({username,bodega}))));
+    pickers=[...next].map(([u,b])=>({u,b}));
+    $('dlg').close();render();toast('Listado de pickers guardado.');
+  }catch(err){$('pMsg').textContent='No se pudo guardar: '+err.message}
+};
+$('dClose').onclick=()=>$('dlg').close();
+
+/* ---------- lectura de Excel ---------- */
+async function readSheet(file){
+  const wb=XLSX.read(await file.arrayBuffer(),{cellDates:true});
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null}).map(r=>{const o={};for(const k in r)o[String(k).trim().toLowerCase()]=r[k];return o});
+}
+function toISO(v){
+  if(v==null||v==='') return null;
+  if(v instanceof Date){
+    // SheetJS puede dejar la fecha unos segundos antes de medianoche: se redondea al día más cercano
+    const t=new Date(v.getTime()+12*3600e3);
+    return ymd(t.getFullYear(),t.getMonth()+1,t.getDate());
+  }
+  if(typeof v==='number') return new Date(Math.round((v-25569)*86400e3)).toISOString().slice(0,10);
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return ymd(+m[1],+m[2],+m[3]);
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return ymd(+m[3],+m[2],+m[1]);
+  return null;
+}
+const num=v=>v==null||v===''||isNaN(+v)?null:+v;
+const int=v=>v==null||v===''||isNaN(+v)?null:Math.round(+v);
+function parseResumen(rows){
+  return rows.filter(r=>r.username&&('cant_pick' in r)).map(r=>({username:String(r.username).trim(),dias:int(r.dias)||0,cant_pick:int(r.cant_pick)||0,
+    inconsistencias:int(r.inconsistencias)||0,r_pick_dia:num(r.r_pick_dia),r_inc:num(r.r_inc),r_ponderado:num(r.r_ponderado)}));
+}
+function parseTiempo(rows){
+  const out=new Map();
+  rows.forEach(r=>{
+    const f=toISO(r.fecha); if(!r.username||!f) return;
+    const o={username:String(r.username).trim(),fecha:f,total_unidades_pickeadas:num(r.total_unidades_pickeadas),total_lineas_pickeadas:int(r.total_lineas_pickeadas),
+      total_skus_pickeados:int(r.total_skus_pickeados),tareas_realizadas:int(r.tareas_realizadas),unidades_tarea:num(r.unidades_tarea),
+      unidades_por_minuto:num(r.unidades_por_minuto),unidades_por_hora:num(r.unidades_por_hora),lineas_por_hora:num(r.lineas_por_hora),cant_subcategorias:int(r.cant_subcategorias)};
+    out.set(o.username+'|'+o.fecha,o);
+  });
+  return [...out.values()];
+}
+
+/* ---------- carga diaria ---------- */
+let pend={res:null,tim:null,resName:'',timName:''};
+$('btnLoad').onclick=()=>{
+  pend={res:null,tim:null,resName:'',timName:''};
+  $('dlFiles').value='';$('dlInfo').innerHTML='';$('dlCut').value='';$('dlSave').disabled=true;
+  $('dlMsg').textContent='Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.';
+  $('dl').showModal();
+};
+$('dlClose').onclick=()=>$('dl').close();
+$('dlFiles').onchange=async e=>{
+  const files=[...e.target.files]; if(!files.length) return;
+  if(typeof XLSX==='undefined'){$('dlMsg').textContent='No se pudo cargar el lector de Excel (revisa la conexión a internet).';return}
+  const info=[];
+  for(const f of files){
+    try{
+      const rows=await readSheet(f);
+      const cols=rows.length?Object.keys(rows[0]):[];
+      if(cols.includes('cant_pick')&&cols.includes('inconsistencias')){
+        pend.res=parseResumen(rows);pend.resName=f.name;
+        info.push(`✔ <b>Resumen de inconsistencias</b>: ${pend.res.length} usuarios`);
+      }else if(cols.includes('lineas_por_hora')&&cols.includes('fecha')){
+        pend.tim=parseTiempo(rows);pend.timName=f.name;
+        const fs=pend.tim.map(r=>r.fecha).sort();
+        info.push(`✔ <b>Tiempo de picking</b>: ${pend.tim.length} filas, del ${fechaCorta(fs[0])} al ${fechaCorta(fs[fs.length-1])}`);
+        $('dlCut').value=fs[fs.length-1];
+      }else info.push(`✖ ${esc(f.name)}: no reconozco las columnas`);
+    }catch(err){info.push(`✖ ${esc(f.name)}: ${esc(err.message)}`)}
+  }
+  if(!pend.res) info.push('⚠ Falta el <b>resumen de inconsistencias</b> (columnas username, dias, cant_pick, inconsistencias).');
+  if(!pend.tim) info.push('⚠ Sin archivo de <b>tiempos</b>: se puede guardar solo el resumen, pero SKUs/hora usará horas fijas.');
+  if(!$('dlCut').value){const t=new Date();$('dlCut').value=ymd(t.getFullYear(),t.getMonth()+1,t.getDate())}
+  $('dlInfo').innerHTML=info.join('<br>');
+  $('dlSave').disabled=!pend.res;
+};
+$('dlSave').onclick=async()=>{
+  const cut=$('dlCut').value;
+  if(!cut||!pend.res){$('dlMsg').textContent='Falta la fecha de corte o el resumen.';return}
+  $('dlSave').disabled=true;
+  try{
+    $('dlMsg').textContent='Guardando resumen…';
+    check(await sb.from('resumen_inconsistencias').delete().eq('fecha_corte',cut));
+    check(await sb.from('resumen_inconsistencias').insert(pend.res.map(r=>({...r,fecha_corte:cut}))));
+    if(pend.tim&&pend.tim.length){
+      for(let i=0;i<pend.tim.length;i+=500){
+        $('dlMsg').textContent=`Guardando tiempos… ${Math.min(i+500,pend.tim.length)} de ${pend.tim.length}`;
+        check(await sb.from('tiempo_picking').upsert(pend.tim.slice(i,i+500),{onConflict:'username,fecha'}));
+      }
+    }
+    $('dlMsg').textContent='Actualizando resumen del mes…';
+    await saveMonthSummary(cut);
+    check(await sb.from('cargas').insert({fecha_corte:cut,archivo_resumen:pend.resName,archivo_tiempos:pend.timName||null,
+      filas_resumen:pend.res.length,filas_tiempos:pend.tim?pend.tim.length:0}));
+    $('dl').close();
+    await refresh(cut);
+    toast('Datos guardados. Corte: '+fechaCorta(cut)+'.');
+  }catch(err){$('dlMsg').textContent='No se pudo guardar: '+err.message;$('dlSave').disabled=false}
+};
+
+/* ---------- historial de meses ---------- */
+function snapshot(rows, tmap){
+  const set=new Map(pickers.map(p=>[p.u.trim().toLowerCase(),p.b]));
+  const P=rows.reduce((a,r)=>a+r.cant_pick,0), I=rows.reduce((a,r)=>a+r.inconsistencias,0);
+  const dias=Math.max(...rows.map(r=>r.dias),1);
+  const bod={}; let N=0,H=0;
+  rows.forEach(r=>{
+    const b=set.get(r.username.trim().toLowerCase()); if(!b) return;
+    const tm=tmap&&tmap[r.username]; const h=tm?tm.horas:r.dias*7.67;
+    const x=bod[b]||(bod[b]={picks:0,inc:0,h:0}); x.picks+=r.cant_pick;x.inc+=r.inconsistencias;x.h+=h;
+    N+=r.cant_pick;H+=h;
+  });
+  Object.values(bod).forEach(x=>{x.skuh=x.h?x.picks/x.h:0;x.ratio=x.inc?x.picks/x.inc:null;delete x.h});
+  return {picks:P,inc:I,dias,perDay:P/dias,skuh:H?N/H:0,bod};
+}
+// Guarda el resumen del mes de la fecha de corte; cuando el mes termina queda como "mes cerrado".
+// No sobrescribe meses agregados a mano.
+async function saveMonthSummary(cut){
+  const mes=cut.slice(0,7);
+  const ex=check(await sb.from('historial').select('auto').eq('mes',mes));
+  if(ex.length&&!ex[0].auto) return;
+  const [y,m]=mes.split('-').map(Number), next=m===12?ymd(y+1,1,1):ymd(y,m+1,1);
+  const last=check(await sb.from('cortes').select('fecha_corte').gte('fecha_corte',mes+'-01').lt('fecha_corte',next).order('fecha_corte',{ascending:false}).limit(1));
+  const c=last.length?last[0].fecha_corte:cut;
+  const res=await fetchAll(()=>sb.from('resumen_inconsistencias').select('username,dias,cant_pick,inconsistencias').eq('fecha_corte',c).order('username'));
+  const tim=await fetchAll(()=>sb.from('tiempo_picking').select('username,fecha,total_lineas_pickeadas,total_skus_pickeados,lineas_por_hora').gte('fecha',mes+'-01').lte('fecha',c).order('username').order('fecha'));
+  if(!res.length) return;
+  const s=snapshot(res,aggTime(tim));
+  check(await sb.from('historial').upsert({mes,resumen:{...s,corte:c},auto:true,actualizado:new Date().toISOString()}));
+}
+function renderHist(){
+  const curKey=lastCur?lastCur.key:'9999-99';
+  const items=hist.filter(h=>h.key<curKey).sort((a,b)=>a.key.localeCompare(b.key));
+  const acc=items.filter(h=>h.acc), months=items.filter(h=>!h.acc);
+  const rows=months.map(h=>({...h,cur:false}));
+  if(lastCur) rows.push({...lastCur,cur:true});
+  const maxP=Math.max(...rows.map(r=>r.picks),1);
+  const incTxt=r=>r.inc==null?'inc. n/d':nf(r.inc)+' inc. · ratio '+nf(r.inc?r.picks/r.inc:Infinity,1);
+  $('histBox').innerHTML=(months.length?'':'<div class="note" style="margin:0 0 8px">Aún no hay meses cerrados guardados.</div>')+
+    rows.map(r=>`<div class="row"><div class="mn">${r.label}<small>${r.cur?'proyección al cierre':'cerrado · '+r.dias+' días con operación'}</small></div>
+      <div><div class="bar2 ${r.cur?'cur':''}" style="width:${r.picks/maxP*100}%"></div></div>
+      <div class="vv">${nf(r.picks)}<small>${incTxt(r)}${r.cur?'':`<button class="del" data-k="${r.key}" title="Quitar">✕</button>`}</small></div></div>`).join('');
+  $('histBox').querySelectorAll('.del').forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k;
+    if(!confirm('¿Quitar el resumen de '+mesLabel(k)+' para todos los usuarios?')) return;
+    try{check(await sb.from('historial').delete().eq('mes',k));hist=hist.filter(h=>h.key!==k);renderHist()}
+    catch(err){toast('No se pudo quitar: '+esc(err.message))}
+  });
+  const head='<thead><tr><th>Mes</th><th>Picking</th><th>Inconsist. reales</th><th>En sistema</th><th>Falsas</th><th>Ratio</th><th>Picks/día</th><th>Δ picks/día</th><th>SKUs/h</th>'+BODEGAS.map(b=>`<th>SKUs/h ${b}</th>`).join('')+'</tr></thead>';
+  const line=(r,prev)=>{
+    const dl=prev&&prev.perDay&&r.perDay?(r.perDay/prev.perDay-1)*100:null;
+    const noInc=r.inc==null;
+    return `<tr><td><b>${r.label}</b>${r.cur?' <span class="chip light" style="--c:var(--sun)">proy.</span>':''}${r.acc?' <span class="chip" style="--c:var(--olive)">acumulado</span>':''}</td><td>${nf(r.picks)}</td><td>${noInc?'n/d':nf(r.inc)}</td><td>${r.incSis==null?'–':nf(r.incSis)}</td><td>${r.incSis==null?'–':nf(r.incSis-r.inc)}</td><td>${noInc?'n/d':nf(r.inc?r.picks/r.inc:Infinity,1)}</td><td>${r.perDay?nf(r.perDay):'–'}</td>
+    <td class="${dl===null?'':dl>=0?'up':'dn'}">${dl===null?'–':(dl>=0?'▲ ':'▼ ')+nf(Math.abs(dl),1)+'%'}</td><td>${nf(r.skuh,1)}</td>`+
+    BODEGAS.map(b=>{const x=r.bod&&r.bod[b];return `<td>${x&&x.skuh?nf(x.skuh,1):'–'}</td>`}).join('')+'</tr>'};
+  const body=acc.map(a=>line(a,null)).join('')+rows.map((r,i)=>line(r,i>0?rows[i-1]:null)).join('');
+  { const h2='<thead><tr><th>Mes</th>'+BODEGAS.map(b=>`<th>Ratio ${b}</th><th>Inc. ${b}</th>`).join('')+'</tr></thead>';
+    const b2=rows.map(r=>`<tr><td><b>${r.label}</b>${r.cur?' <span class="chip light" style="--c:var(--sun)">proy.</span>':''}</td>`+BODEGAS.map(b=>{const x=r.bod&&r.bod[b];return `<td>${x&&x.ratio?nf(x.ratio,1):'–'}</td><td>${x&&x.inc!=null?nf(x.inc,0):'–'}</td>`}).join('')+'</tr>').join('');
+    $('histTbl2').innerHTML=h2+'<tbody>'+b2+'</tbody><tfoot><tr><td colspan="11" style="text-align:left;font-weight:400">Inconsistencias por bodega tal como salen del sistema (incluyen las falsas); por eso no suman el total real del mes.</td></tr></tfoot>'; }
+  $('histTbl').innerHTML=head+'<tbody>'+body+'</tbody>'+(hist.some(h=>h.inc==null&&!h.acc)?'<tfoot><tr><td colspan="14" style="text-align:left;font-weight:400">n/d: el resumen de inconsistencias que se cargó es acumulado y no se puede separar por mes. Con el resumen de cada mes se completan inconsistencias y ratio.</td></tr></tfoot>':'');
+}
+$('btnHist').onclick=()=>{$('hMsg').textContent='Se guarda solo el resumen (totales, ratio, SKUs/h y resultado por bodega), visible para todos.';$('dh').showModal()};
+$('dhClose').onclick=()=>$('dh').close();
+$('hSave').onclick=async()=>{
+  const mv=$('hMonth').value, f1=$('hF1').files[0], f2=$('hF2').files[0];
+  if(!mv||!f1){$('hMsg').textContent='Falta elegir el mes y el archivo de resumen.';return}
+  if(typeof XLSX==='undefined'){$('hMsg').textContent='No se pudo cargar el lector de Excel (se requiere internet).';return}
+  try{
+    const rows=parseResumen(await readSheet(f1));
+    if(!rows.length) throw new Error('el resumen no tiene filas válidas');
+    const tmap=f2?aggTime(await readSheet(f2)):null;
+    const s=snapshot(rows,tmap);
+    check(await sb.from('historial').upsert({mes:mv,resumen:s,auto:false,actualizado:new Date().toISOString()}));
+    hist=hist.filter(h=>h.key!==mv).concat({...s,key:mv,label:mesLabel(mv),auto:false});
+    $('dh').close();renderHist();toast('Resumen de '+mesLabel(mv)+' guardado.');
+  }catch(err){$('hMsg').textContent='No pude guardar: '+err.message}
+};
+
+/* ---------- controles ---------- */
+$('cut').onchange=async()=>{busy(true,'Cargando corte…');try{await loadCut($('cut').value);render()}catch(err){toast(esc(err.message))}finally{busy(false)}};
+$('hrs').oninput=()=>curCut&&render();
+$('skuMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  skuMode=b.dataset.m;$('skuMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render();
+});
+$('incMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  incMode=b.dataset.m;$('incMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render();
+});
+
+/* ---------- sesión ---------- */
+let sbUser=null, channel=null, started=false;
+function showLogin(){$('loginView').hidden=false;$('appView').hidden=true;$('who').hidden=true;}
+async function showApp(session){
+  sbUser=session.user.email;
+  $('loginView').hidden=true;$('appView').hidden=false;$('who').hidden=false;
+  if(started) return; started=true;
+  await refresh();
+  // aviso en vivo cuando otro usuario carga datos
+  channel=sb.channel('cargas').on('postgres_changes',{event:'INSERT',schema:'public',table:'cargas'},p=>{
+    if(p.new&&p.new.usuario===sbUser) return;
+    toast('Hay datos nuevos (corte '+fechaCorta(p.new.fecha_corte)+'). Actualizando…');
+    refresh(p.new.fecha_corte);
+  }).subscribe();
+}
+$('loginForm').onsubmit=async e=>{
+  e.preventDefault();$('lMsg').textContent='Entrando…';
+  const {error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(),password:$('lPass').value});
+  $('lMsg').textContent=error?'No se pudo entrar: revisa el correo y la contraseña.':'';
+};
+$('btnOut').onclick=async()=>{await sb.auth.signOut();location.reload()};
+sb.auth.onAuthStateChange((ev,session)=>{ if(session) setTimeout(()=>showApp(session)); else showLogin(); });
+</script>
+</body>
+</html>
