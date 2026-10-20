@@ -1037,8 +1037,17 @@ async function showApp(session){
 }
 $('loginForm').onsubmit=async e=>{
   e.preventDefault();$('lMsg').textContent='Entrando…';
-  const {error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(),password:$('lPass').value});
-  $('lMsg').textContent=error?'No se pudo entrar: revisa el correo y la contraseña.':'';
+  let error=null;
+  try{({error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(),password:$('lPass').value}))}catch(e){error=e}
+  if(!error){$('lMsg').textContent='';return}
+  const m=String(error.message||error).toLowerCase();
+  $('lMsg').textContent=
+    m.includes('invalid login')||m.includes('invalid_credentials')?'Correo o contraseña incorrectos.':
+    m.includes('not confirmed')?'Este usuario no está confirmado. En Supabase > Authentication > Users, vuelve a crearlo marcando «Auto Confirm User».':
+    m.includes('api key')||m.includes('apikey')||m.includes('jwt')?'La llave de Supabase en config.js no es válida. Copia de nuevo la llave «anon» (Legacy API Keys).':
+    m.includes('fetch')||m.includes('network')?'No se pudo conectar con Supabase. Revisa la URL en config.js y tu conexión a internet.':
+    m.includes('rate')||m.includes('too many')?'Demasiados intentos. Espera unos minutos e intenta de nuevo.':
+    'No se pudo entrar: '+(error.message||error);
 };
 $('btnOut').onclick=async()=>{await sb.auth.signOut();location.reload()};
 sb.auth.onAuthStateChange((ev,session)=>{ if(session) setTimeout(()=>showApp(session)); else showLogin(); });
