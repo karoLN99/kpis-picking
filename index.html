@@ -359,7 +359,7 @@ a.wms{color:var(--accent-ink);font-weight:700}
     <li><b>Proyección</b>: área = total acumulado ÷ días hábiles transcurridos × días hábiles del mes. Picker = su promedio por día trabajado × (días trabajados + días hábiles restantes), suponiendo asistencia completa.</li>
     <li><b>Inconsistencias por tienda</b>: Inconsistencia = cantidad enviada − cantidad recibida. Positivo = <b>faltante</b> (llegó menos de lo enviado); negativo = <b>sobrante</b> (llegó más). Se muestran las líneas del mes hasta la fecha de corte. Las líneas con diferencias de 100,000 unidades o más se marcan como posible error de captura (por ejemplo, un código de barras escaneado en el campo de cantidad) y no suman a las unidades.</li>
     <li><b>Inconsistencias falsas</b>: el resumen del sistema incluye las inconsistencias que después resultan falsas. Al cerrar el mes, registra el total de falsas con «Registrar inconsistencias falsas» (pestaña Meses anteriores): <b>reales = en sistema − falsas</b>, y el ratio del mes se calcula con las reales. Mientras el mes está en curso se usa el dato del sistema.</li>
-    <li><b>Tarimas pendientes de ingreso</b>: vienen del último reporte «tarimas nunca recepcionadas». Las tarimas en estado Detallado se muestran aparte, en el apartado «Detalladas»; cada carga reemplaza las tarimas de las bodegas que trae el archivo. Días desde carga = ahora − fecha fin de carga a contenedor (si aún no se cargó, desde la creación de la tarima). Verde: menos de 1 día; amarillo: de 1 a menos de 3; rojo: 3 días o más. Los comentarios se conservan entre cargas.</li>
+    <li><b>Tarimas pendientes de ingreso</b>: vienen del último reporte «tarimas nunca recepcionadas». Las tarimas en estado Detallado se muestran aparte, en el apartado «Detalladas»; cada carga reemplaza las tarimas de las bodegas que trae el archivo. Días desde carga = días completos entre la fecha fin de carga a contenedor y ahora (si aún no se cargó, desde la creación de la tarima). Verde: menos de 1 día; amarillo: de 1 a menos de 3; rojo: 3 días o más. Los comentarios se conservan entre cargas.</li>
     <li><b>Datos</b>: cada carga diaria guarda una foto del acumulado del mes con su fecha de corte. Volver a cargar el mismo día reemplaza esa foto; el selector «Fecha de corte» permite ver cualquier día ya cargado. El resumen del mes se guarda solo y pasa a «Meses anteriores» cuando cambia el mes.</li>
   </ul></div>
   </section>
@@ -1169,7 +1169,7 @@ const estadoTxt=e=>e?e.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/ ([A-Z])/g,m=
 const hoursSince=s=>s?(Date.now()-new Date(s).getTime())/3600e3:null;
 function tpRow(r){
   const base=r.fecha_fin_carga||r.fecha_creacion, h=hoursSince(base);
-  return {...r,tienda:tName(r.tienda_origen),dias:h==null?null:h/24,desdeCreacion:!r.fecha_fin_carga,comentario:(cmts[r.id]||{}).comentario||''};
+  return {...r,tienda:tName(r.tienda_origen),dias:h==null?null:Math.floor(h/24),desdeCreacion:!r.fecha_fin_carga,comentario:(cmts[r.id]||{}).comentario||''};
 }
 const diasCls=d=>d==null?'':d<1?'d-ok':d<3?'d-warn':'d-bad';
 function tpFiltered(rows){
@@ -1206,7 +1206,7 @@ function renderTarimas(){
   $('tpKpis').innerHTML=`
     <div class="card kpi k1"><div class="lbl">${tpVista==='det'?'Tarimas detalladas':'Tarimas pendientes'}</div><div class="val">${nf(rows.length)}</div><div class="sub">bodega ${esc(tpBod)}${rows.length!==all.length?' · de '+nf(all.length)+' en el reporte':''}</div></div>
     <div class="card kpi k2"><div class="lbl">Con 3 días o más</div><div class="val">${nf(atr)}</div><div class="sub">desde la carga a contenedor</div></div>
-    <div class="card kpi k3"><div class="lbl">Más antigua</div><div class="val">${old?nf(old.dias,1)+' d':'–'}</div><div class="sub">${old?'tarima '+esc(old.tarima||'')+' · '+esc(old.tienda||old.tienda_origen||''):''}</div></div>
+    <div class="card kpi k3"><div class="lbl">Más antigua</div><div class="val">${old?nf(old.dias)+' d':'–'}</div><div class="sub">${old?'tarima '+esc(old.tarima||'')+' · '+esc(old.tienda||old.tienda_origen||''):''}</div></div>
     <div class="card kpi k4"><div class="lbl">Contenedores · tiendas</div><div class="val">${nf(cont)} · ${nf(tiendasN)}</div><div class="sub">contenedores distintos · tiendas de origen</div></div>`;
   const byE={}; all.forEach(r=>{byE[r.estado]=(byE[r.estado]||0)+1});
   const selE=$('tpEstado').value;
@@ -1217,7 +1217,7 @@ function renderTarimas(){
     if(r.dias!=null&&(x.max==null||r.dias>x.max))x.max=r.dias;x.est[r.estado]=(x.est[r.estado]||0)+1});
   const selT=$('tpTienda').value;
   $('tpTiendas').innerHTML='<thead><tr><th class="l">Tienda de origen</th><th class="l">Tienda</th><th>Tarimas</th><th>Contenedores</th><th>Más antigua (días)</th><th class="l">Estados</th></tr></thead><tbody>'+
-    Object.values(byT).sort((a,b)=>b.n-a.n).map(x=>`<tr data-t="${esc(x.c)}" class="${x.c===selT?'sel':''}" style="cursor:pointer"><td class="l"><b>${esc(x.c)}</b></td><td class="l">${esc(tName(x.c))||'<span class="status">sin nombre</span>'}</td><td>${x.n}</td><td>${x.cont.size}</td><td class="${diasCls(x.max)}">${x.max==null?'–':nf(x.max,1)}</td><td class="l">${Object.entries(x.est).map(([e,n])=>esc(estadoTxt(e))+' '+n).join(' · ')}</td></tr>`).join('')+'</tbody>';
+    Object.values(byT).sort((a,b)=>b.n-a.n).map(x=>`<tr data-t="${esc(x.c)}" class="${x.c===selT?'sel':''}" style="cursor:pointer"><td class="l"><b>${esc(x.c)}</b></td><td class="l">${esc(tName(x.c))||'<span class="status">sin nombre</span>'}</td><td>${x.n}</td><td>${x.cont.size}</td><td class="${diasCls(x.max)}">${x.max==null?'–':nf(x.max)}</td><td class="l">${Object.entries(x.est).map(([e,n])=>esc(estadoTxt(e))+' '+n).join(' · ')}</td></tr>`).join('')+'</tbody>';
   $('tpTiendas').querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>{$('tpTienda').value=$('tpTienda').value===tr.dataset.t?'':tr.dataset.t;renderTarimas()});
   const C=[['tarima','No. de tarima',''],['numero_contenedor','No. de contenedor',''],['estado','Estado','l'],['tienda_origen','Tienda de origen','l'],['tienda','Tienda','l'],
     ['fecha_fin_carga','Fecha fin de carga a contenedor','l'],['dias','Días desde carga',''],['fecha_llegada','Fecha llegada','l'],['usuario_carga','Usuario carga a contenedor','l'],['comentario','Comentarios','l']];
@@ -1227,7 +1227,7 @@ function renderTarimas(){
   $('tpDet').innerHTML='<thead><tr>'+C.map(([k,l,c])=>`<th data-k="${k}" class="${c}">${l}${tpSort===k?(tpDir>0?' ▲':' ▼'):''}</th>`).join('')+'<th class="l">WMS</th></tr></thead><tbody>'+
     srt.map(r=>`<tr><td><b>${esc(r.tarima||'')}</b></td><td>${esc(r.numero_contenedor||'–')}</td><td class="l">${esc(estadoTxt(r.estado))}</td><td class="l">${esc(r.tienda_origen||'')}</td><td class="l">${esc(r.tienda)}</td>
       <td class="l">${r.fecha_fin_carga?fdt(r.fecha_fin_carga):'<span class="status">sin cargar</span>'}</td>
-      <td class="${diasCls(r.dias)}" title="${r.desdeCreacion?'Aún no se carga a contenedor: días desde la creación de la tarima':''}">${r.dias==null?'–':nf(r.dias,1)}${r.desdeCreacion?'*':''}</td>
+      <td class="${diasCls(r.dias)}" title="${r.desdeCreacion?'Aún no se carga a contenedor: días desde la creación de la tarima':''}">${r.dias==null?'–':nf(r.dias)}${r.desdeCreacion?'*':''}</td>
       <td class="l">${r.fecha_llegada?fdt(r.fecha_llegada):'–'}</td><td class="l">${esc(r.usuario_carga||'–')}</td>
       <td class="l"><input class="cmt" data-id="${esc(r.id)}" value="${esc(r.comentario)}" placeholder="Agregar comentario" title="${cmts[r.id]&&cmts[r.id].usuario?esc('Último cambio: '+cmts[r.id].usuario):''}"></td>
       <td class="l">${r.url_acceso&&/^https?:\/\//i.test(r.url_acceso)?`<a class="wms" href="${esc(r.url_acceso)}" target="_blank" rel="noopener">Abrir</a>`:''}</td></tr>`).join('')+
@@ -1250,7 +1250,7 @@ $('tpCsv').onclick=()=>{
   const H=['No. de tarima','No. de contenedor','Estado','Tienda de origen','Tienda','Fecha fin de carga a contenedor','Dias desde carga','Fecha llegada','Usuario carga a contenedor','Comentarios'];
   const q=v=>{v=v==null?'':String(v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
   const rows=tpFiltered(tpBase());
-  const lines=[H.join(',')].concat(rows.map(r=>[r.tarima,r.numero_contenedor,estadoTxt(r.estado),r.tienda_origen,r.tienda,fdt(r.fecha_fin_carga),r.dias==null?'':r.dias.toFixed(1),fdt(r.fecha_llegada),r.usuario_carga,r.comentario].map(q).join(',')));
+  const lines=[H.join(',')].concat(rows.map(r=>[r.tarima,r.numero_contenedor,estadoTxt(r.estado),r.tienda_origen,r.tienda,fdt(r.fecha_fin_carga),r.dias==null?'':r.dias,fdt(r.fecha_llegada),r.usuario_carga,r.comentario].map(q).join(',')));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}));
   a.download='tarimas_'+(tpVista==='det'?'detalladas':'pendientes')+'_B'+tpBod+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
