@@ -4,29 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KPIs Picking</title>
+<script>try{if(localStorage.getItem('tema')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <link rel="icon" href="logo.png">
 <style>
 :root{
   --sun:#F8B810; --lime:#C0D828; --olive:#787828; --oasis:#EF3A12; --quali:#006028;
   --leaf:#5BA32B; --forest:#1F3D2B; --paper:#F5F6EA; --card:#FFFFFF; --line:#E1E4CF;
   --ink:#1F3D2B; --muted:#5E6F5F; --soft-lime:#F0F5CC; --soft-sun:#FEF1C7; --soft-red:#FDE0D8; --soft-green:#D8EBDD;
+  --row-alt:#FAFBF3; --row-line:#EEF0E0; --track:#E9ECD6; --neutral:#ECEDE2; --neutral-ink:#8A958A; --danger-ink:#C62E0A; --warn-ink:#B07F00; --accent-ink:#006028; --frame:#111; --head:#fff; --overlay:rgba(245,246,234,.7); --dash-border:#B9BFA0;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.4}
 .wrap{max-width:1320px;margin:0 auto;padding:0 20px 48px}
-header.top{background:#fff;border-bottom:5px solid var(--lime)}
+header.top{background:var(--head);border-bottom:5px solid var(--lime)}
 header.top .in{max-width:1320px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 header.top img{height:60px;display:block}
-.titlebar{margin:22px 0 18px;display:flex;align-items:stretch;border:3px solid #111;border-radius:40px;background:#fff;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.titlebar{margin:22px 0 18px;display:flex;align-items:stretch;border:3px solid var(--frame);border-radius:40px;background:var(--card);overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.08)}
 .titlebar .n{background:var(--olive);color:#fff;font-weight:800;font-size:22px;padding:10px 22px;display:flex;align-items:center}
 .titlebar h1{gap:10px;margin:0;font-size:22px;letter-spacing:.5px;padding:10px 22px;flex:1;display:flex;align-items:center;text-transform:uppercase}
 .titlebar .tag{background:var(--olive);color:#fff;font-weight:800;padding:10px 26px;display:flex;align-items:center;font-size:14px;clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%)}
 .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:18px}
 .controls label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.controls input,.controls select{font:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.controls input,.controls select{font:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
 .controls input[type=number]{width:90px}
 .btn{font:inherit;font-weight:700;font-size:14px;padding:9px 14px;border-radius:9px;border:2px solid var(--quali);background:var(--quali);color:#fff;cursor:pointer}
-.btn.alt{background:#fff;color:var(--quali)}
+.btn.alt{background:var(--card);color:var(--accent-ink);border-color:var(--accent-ink)}
 .btn:hover{filter:brightness(1.08)}
 .spacer{flex:1}
 .status{font-size:12.5px;color:var(--muted)}
@@ -48,7 +50,7 @@ h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)
 .proj .val{color:#fff}
 .proj.p2 .val{color:#FFB199}
 .proj.p3 .val{color:var(--sun)}
-.bar{height:12px;background:#E9ECD6;border-radius:8px;overflow:hidden;margin-top:10px}
+.bar{height:12px;background:var(--track);border-radius:8px;overflow:hidden;margin-top:10px}
 .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--quali),var(--leaf),var(--lime));border-radius:8px}
 .monthrow{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px}
 @media(max-width:860px){.monthrow{grid-template-columns:1fr}}
@@ -56,14 +58,14 @@ h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)
 .cal .h{font-size:11px;font-weight:800;text-align:center;color:var(--muted)}
 .cal .d{aspect-ratio:1.25;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid transparent;user-select:none}
 .cal .d.done{background:var(--quali);color:#fff}
-.cal .d.rem{background:var(--soft-lime);color:var(--forest);cursor:pointer}
-.cal .d.half{background:repeating-linear-gradient(135deg,var(--soft-lime) 0 6px,#fff 6px 12px);color:var(--forest);border:2px dashed var(--leaf);cursor:pointer}
+.cal .d.rem{background:var(--soft-lime);color:var(--ink);cursor:pointer}
+.cal .d.half{background:repeating-linear-gradient(135deg,var(--soft-lime) 0 6px,var(--card) 6px 12px);color:var(--ink);border:2px dashed var(--leaf);cursor:pointer}
 .rot{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px}
 .rot .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:8px}
 .rot .g div{background:var(--paper);border-radius:10px;padding:8px 10px}
-.rot .a{color:var(--quali);font-weight:800}.rot .s{color:#C62E0A;font-weight:800}
+.rot .a{color:var(--accent-ink);font-weight:800}.rot .s{color:var(--danger-ink);font-weight:800}
 .cal .d.half2{background:repeating-linear-gradient(135deg,var(--quali) 0 6px,#2E8B4F 6px 12px);color:#fff}
-.cal .d.sun{background:#ECEDE2;color:#9AA597}
+.cal .d.sun{background:var(--neutral);color:var(--neutral-ink)}
 .cal .d.off{background:var(--oasis);color:#fff;cursor:pointer}
 .cal .d.today{border-color:var(--sun);box-shadow:0 0 0 2px var(--sun)}
 .cal .e{visibility:hidden}
@@ -85,12 +87,12 @@ h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)
 .pill.l3{background:var(--quali);color:#fff}
 .pill.l2{background:var(--lime);color:var(--forest)}
 .pill.l1{background:var(--sun);color:var(--forest)}
-.pill.l0{background:var(--soft-red);color:#B3260A}
-.pill.na{background:#ECEDE2;color:#8A958A}
+.pill.l0{background:var(--soft-red);color:var(--danger-ink)}
+.pill.na{background:var(--neutral);color:var(--neutral-ink)}
 .rank h3{margin:0;font-size:15px;line-height:1.25}
 .rank .desc{font-size:12px;color:var(--muted);margin:2px 0 10px}
 .rank ol{list-style:none;margin:0;padding:0}
-.rank li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #EEF0E0;position:relative}
+.rank li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--row-line);position:relative}
 .rank li:last-child{border:none}
 .rank .pos{width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
 .rank .nm{font-weight:700;font-size:14px}
@@ -100,22 +102,22 @@ h2 small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)
 .rank.good{border-top:6px solid var(--quali);--c:var(--quali)}
 .rank.bad{border-top:6px solid var(--oasis);--c:var(--oasis)}
 .rank.opp{border-top:6px solid var(--sun);--c:#D79A00}
-.seg{display:inline-flex;border:2px solid var(--quali);border-radius:10px;overflow:hidden}
-.seg button{font:inherit;font-size:13px;font-weight:700;border:none;background:#fff;color:var(--quali);padding:6px 12px;cursor:pointer}
+.seg{display:inline-flex;border:2px solid var(--accent-ink);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;font-weight:700;border:none;background:var(--card);color:var(--accent-ink);padding:6px 12px;cursor:pointer}
 .seg button.on{background:var(--quali);color:#fff}
 .tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:16px}
 table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
 th{background:var(--forest);color:#fff;text-align:right;padding:9px 10px;font-size:12px;white-space:nowrap;cursor:pointer;position:sticky;top:0}
 th:first-child,th:nth-child(2),th:nth-child(3){text-align:left}
 th:hover{background:var(--quali)}
-td{padding:7px 10px;border-bottom:1px solid #EEF0E0;text-align:right;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--row-line);text-align:right;white-space:nowrap}
 td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
-tr:nth-child(even) td{background:#FAFBF3}
+tr:nth-child(even) td{background:var(--row-alt)}
 tfoot td{font-weight:800;background:var(--soft-lime)!important;border-top:2px solid var(--lime)}
 td.pjc{color:var(--quali);font-weight:700}
 .cellbar{background:linear-gradient(90deg,var(--soft-lime) var(--w),transparent var(--w))}
 .sup{display:flex;flex-wrap:wrap;gap:8px}
-.sup span{background:#fff;border:1px dashed #B9BFA0;border-radius:20px;padding:4px 12px;font-size:13px}
+.sup span{background:var(--card);border:1px dashed var(--dash-border);border-radius:20px;padding:4px 12px;font-size:13px}
 .sup span b{color:var(--olive)}
 dialog{border:none;border-radius:18px;padding:0;width:min(560px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.35)}
 dialog::backdrop{background:rgba(31,61,43,.55)}
@@ -124,19 +126,19 @@ dialog .bd{padding:16px 20px;max-height:62vh;overflow:auto}
 dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .prow{display:grid;grid-template-columns:1fr 140px 34px;gap:8px;margin-bottom:7px}
 .prow input,.prow select{font:inherit;font-size:13.5px;padding:6px 8px;border:1.5px solid var(--line);border-radius:7px;min-width:0}
-.prow button{border:none;background:var(--soft-red);color:#B3260A;border-radius:7px;font-weight:800;cursor:pointer}
-.hist .row{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #EEF0E0}
+.prow button{border:none;background:var(--soft-red);color:var(--danger-ink);border-radius:7px;font-weight:800;cursor:pointer}
+.hist .row{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--row-line)}
 .hist .row:last-child{border:none}
 .hist .bar2{height:22px;border-radius:6px;background:var(--quali);min-width:3px;position:relative}
 .hist .bar2.cur{background:repeating-linear-gradient(135deg,var(--sun) 0 7px,#FBD060 7px 14px)}
 .hist .mn{font-weight:800}.hist .mn small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
 .hist .vv{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 .hist .vv small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
-.hist .del{border:none;background:none;color:#B3260A;cursor:pointer;font-weight:800;margin-left:6px}
-.up{color:var(--quali)}.dn{color:#C62E0A}
+.hist .del{border:none;background:none;color:var(--danger-ink);cursor:pointer;font-weight:800;margin-left:6px}
+.up{color:var(--accent-ink)}.dn{color:var(--danger-ink)}
 .fld{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .fld input{font:inherit;font-size:14px;text-transform:none;font-weight:400;color:var(--ink)}
-.method{font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.method{font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
 .method li{margin:4px 0}
 @media print{.controls,.btn{display:none}}
 
@@ -147,33 +149,59 @@ dialog .ft{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:1
 .login .fld input{padding:9px 10px;border:1.5px solid var(--line);border-radius:8px}
 .fld input[type=file],.fld input[type=date],.fld input[type=month]{padding:7px 8px;border:1.5px solid var(--line);border-radius:8px}
 .controls select{min-width:150px}
-.overlay{position:fixed;inset:0;background:rgba(245,246,234,.7);display:flex;align-items:center;justify-content:center;z-index:50}
+.overlay{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:center;justify-content:center;z-index:50}
 .overlay .card{display:flex;gap:12px;align-items:center;font-weight:700}
 .spin{width:20px;height:20px;border:3px solid var(--line);border-top-color:var(--quali);border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--forest);color:#fff;padding:11px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:60;max-width:min(560px,92vw);font-size:14px}
 [hidden]{display:none!important}
 .tabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;background:var(--paper);padding:8px 0 10px;margin-bottom:4px;border-bottom:2px solid var(--line)}
-.tabs button{font:inherit;font-size:14px;font-weight:800;white-space:nowrap;border:2px solid var(--quali);background:#fff;color:var(--quali);border-radius:30px;padding:8px 16px;cursor:pointer}
+.tabs button{font:inherit;font-size:14px;font-weight:800;white-space:nowrap;border:2px solid var(--accent-ink);background:var(--card);color:var(--accent-ink);border-radius:30px;padding:8px 16px;cursor:pointer}
 .tabs button.on{background:var(--quali);color:#fff}
 .tabs button:hover{filter:brightness(1.05)}
 .tab>h2:first-child{margin-top:18px}
-#appView[data-tab=meses] #empty,#appView[data-tab=calculo] #empty,#appView[data-tab=tiendas] #empty{display:none}
+#appView[data-tab=meses] #empty,#appView[data-tab=calculo] #empty,#appView[data-tab=tiendas] #empty,#appView[data-tab=tarimas] #empty{display:none}
 table.tl th,table.tl td{text-align:right}
 table.tl th.l,table.tl td.l{text-align:left}
 table.tl td.desc{white-space:normal;min-width:220px;text-align:left}
 #tdTiendas tbody tr{cursor:pointer}
 #tdTiendas tbody tr.sel td{background:var(--soft-sun)!important}
-td.fal{color:#C62E0A;font-weight:800} td.sob{color:#B07F00;font-weight:800}
+td.fal{color:var(--danger-ink);font-weight:800} td.sob{color:var(--warn-ink);font-weight:800}
 tr.sus td{background:var(--soft-red)!important}
 .controls input[type=search]{min-width:220px}
 @media(max-width:600px){.wrap{padding:0 16px 40px}.g3,.g4,.g5{grid-template-columns:1fr}.kpi .val{font-size:28px}.titlebar h1{font-size:16px}.titlebar .tag{display:none}.daysbox{grid-template-columns:repeat(2,1fr)}.prow{grid-template-columns:1fr 110px 34px}header.top img{height:40px}}
+
+/* ---- modo oscuro ---- */
+:root[data-theme=dark]{color-scheme:dark;
+  --paper:#111713; --card:#1A221D; --line:#2D3A31; --ink:#E4ECE1; --muted:#A2B0A2; --forest:#0D2618;
+  --soft-lime:#283216; --soft-sun:#3A2F12; --soft-red:#3F1D16; --soft-green:#1B3324;
+  --row-alt:#1E2721; --row-line:#29342C; --track:#2A352D; --neutral:#262D28; --neutral-ink:#7D897E;
+  --danger-ink:#FF8B70; --warn-ink:#F3C14B; --accent-ink:#7CD38E; --frame:#3D4D41; --head:#1A221D;
+  --overlay:rgba(17,23,19,.75); --dash-border:#4A574D}
+:root[data-theme=dark] header.top img{background:#fff;border-radius:10px;padding:4px 10px}
+:root[data-theme=dark] .proj{background:#0B2014;border:1px solid var(--line)}
+:root[data-theme=dark] .chip.light,:root[data-theme=dark] .pill.l2,:root[data-theme=dark] .pill.l1{color:#1F3D2B}
+:root[data-theme=dark] .rank.opp{--c:#C98F00}
+dialog{background:var(--card);color:var(--ink)}
+.fld input,.prow input,.prow select,.login .fld input,.cmt{background:var(--card);color:var(--ink)}
+.theme{font:inherit;font-size:13px;font-weight:700;border:2px solid var(--accent-ink);background:var(--card);color:var(--accent-ink);border-radius:30px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.hdr-r{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+/* ---- tarimas ---- */
+.d-ok{color:var(--accent-ink);font-weight:800} .d-warn{color:var(--warn-ink);font-weight:800} .d-bad{color:var(--danger-ink);font-weight:800}
+.estados{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.estados button{font:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:5px 12px;cursor:pointer}
+.estados button b{color:var(--accent-ink)}
+.estados button.on{border-color:var(--accent-ink);background:var(--soft-green)}
+.cmt{font:inherit;font-size:13px;width:220px;padding:5px 7px;border:1.5px solid var(--line);border-radius:7px}
+.cmt.saved{border-color:var(--leaf)}
+a.wms{color:var(--accent-ink);font-weight:700}
+.fx{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <header class="top"><div class="in">
   <img alt="Tiendas Oriente · Centro de Distribución de Oriente · Oasis · Quali" src="logo.png">
-  <div class="who" id="who" hidden><span class="status" id="hdrStatus"></span><button class="btn alt sm" id="btnOut">Cerrar sesión</button></div>
+  <div class="hdr-r"><div class="who" id="who" hidden><span class="status" id="hdrStatus"></span><button class="btn alt sm" id="btnOut">Cerrar sesión</button></div><button class="theme" id="btnTheme" title="Cambiar entre modo claro y oscuro"></button></div>
 </div></header>
 
 <!-- ======== Inicio de sesión ======== -->
@@ -206,6 +234,7 @@ tr.sus td{background:var(--soft-red)!important}
     <button data-t="resumen" class="on">Resumen del mes</button>
     <button data-t="resultados">Resultados</button>
     <button data-t="tiendas">Inconsistencias por tienda</button>
+    <button data-t="tarimas">Tarimas pendientes de ingreso</button>
     <button data-t="meses">Meses anteriores</button>
     <button data-t="calculo">Cómo se calcula</button>
   </nav>
@@ -291,9 +320,30 @@ tr.sus td{background:var(--soft-red)!important}
   </div>
   </section>
 
+  <section class="tab" data-tab="tarimas" hidden>
+  <h2>Tarimas pendientes de ingreso <small id="tpNote"></small></h2>
+  <div class="fx" style="margin:-2px 0 12px"><div class="seg" id="tpBod"></div><div class="seg" id="tpVista"></div><button class="btn alt sm" id="btnTiendasCat">Editar nombres de tiendas</button></div>
+  <div id="tpEmpty" class="card" hidden></div>
+  <div id="tpBody">
+    <div class="grid g4" id="tpKpis"></div>
+    <div class="estados" id="tpEstados"></div>
+    <div class="controls" style="margin-top:14px">
+      <label>Estado<select id="tpEstado"></select></label>
+      <label>Tienda de origen<select id="tpTienda"></select></label>
+      <label>Buscar tarima, contenedor o usuario<input type="search" id="tpTxt" placeholder="Ej. 36523 o 6741"></label>
+      <button class="btn alt" id="tpClear">Limpiar filtros</button>
+      <button class="btn alt" id="tpCsv">Descargar CSV</button>
+    </div>
+    <h2>Por tienda de origen <small>toca una tienda para filtrar</small></h2>
+    <div class="tablewrap"><table id="tpTiendas" class="tl"></table></div>
+    <h2>Detalle <small id="tpCount"></small></h2>
+    <div class="tablewrap" style="max-height:680px"><table id="tpDet" class="tl"></table></div>
+  </div>
+  </section>
+
   <section class="tab" data-tab="meses" hidden>
   <h2>Meses anteriores <small>solo resumen · el mes en curso va como proyección</small></h2>
-  <div style="margin:-2px 0 12px"><button class="btn alt" id="btnHist">+ Agregar mes cerrado</button></div>
+  <div style="margin:-2px 0 12px" class="fx"><button class="btn alt" id="btnHist">+ Agregar mes cerrado</button><button class="btn alt" id="btnFalsas">Registrar inconsistencias falsas</button></div>
   <div class="card hist" id="histBox"></div>
   <div class="tablewrap" style="margin-top:14px"><table id="histTbl"></table></div>
   <div class="tablewrap" style="margin-top:14px"><table id="histTbl2"></table></div>
@@ -308,6 +358,8 @@ tr.sus td{background:var(--soft-red)!important}
     <li><b>Fin de semana rotativo</b> (todo el mes): cada sábado y domingo cuenta ½ día equivalente (la mitad del grupo trabaja cada día); cada picker trabaja un día del fin de semana, así que su proyección usa los mismos días equivalentes.</li>
     <li><b>Proyección</b>: área = total acumulado ÷ días hábiles transcurridos × días hábiles del mes. Picker = su promedio por día trabajado × (días trabajados + días hábiles restantes), suponiendo asistencia completa.</li>
     <li><b>Inconsistencias por tienda</b>: Inconsistencia = cantidad enviada − cantidad recibida. Positivo = <b>faltante</b> (llegó menos de lo enviado); negativo = <b>sobrante</b> (llegó más). Se muestran las líneas del mes hasta la fecha de corte. Las líneas con diferencias de 100,000 unidades o más se marcan como posible error de captura (por ejemplo, un código de barras escaneado en el campo de cantidad) y no suman a las unidades.</li>
+    <li><b>Inconsistencias falsas</b>: el resumen del sistema incluye las inconsistencias que después resultan falsas. Al cerrar el mes, registra el total de falsas con «Registrar inconsistencias falsas» (pestaña Meses anteriores): <b>reales = en sistema − falsas</b>, y el ratio del mes se calcula con las reales. Mientras el mes está en curso se usa el dato del sistema.</li>
+    <li><b>Tarimas pendientes de ingreso</b>: vienen del último reporte «tarimas nunca recepcionadas». Las tarimas en estado Detallado se muestran aparte, en el apartado «Detalladas»; cada carga reemplaza las tarimas de las bodegas que trae el archivo. Días desde carga = ahora − fecha fin de carga a contenedor (si aún no se cargó, desde la creación de la tarima). Verde: menos de 1 día; amarillo: de 1 a menos de 3; rojo: 3 días o más. Los comentarios se conservan entre cargas.</li>
     <li><b>Datos</b>: cada carga diaria guarda una foto del acumulado del mes con su fecha de corte. Volver a cargar el mismo día reemplaza esa foto; el selector «Fecha de corte» permite ver cualquier día ya cargado. El resumen del mes se guarda solo y pasa a «Meses anteriores» cuando cambia el mes.</li>
   </ul></div>
   </section>
@@ -317,7 +369,7 @@ tr.sus td{background:var(--soft-red)!important}
 <dialog id="dl">
   <div class="hd"><span>Cargar datos del día</span><button class="btn alt" style="padding:3px 10px" id="dlClose">✕</button></div>
   <div class="bd">
-    <label class="fld">Archivos de Excel (puedes seleccionar los tres a la vez)<input type="file" id="dlFiles" accept=".xlsx,.xls,.csv" multiple></label>
+    <label class="fld">Archivos de Excel (puedes seleccionar varios a la vez)<input type="file" id="dlFiles" accept=".xlsx,.xls,.csv" multiple></label>
     <div id="dlInfo" class="note" style="margin:-4px 0 12px"></div>
     <label class="fld">Fecha de corte<input type="date" id="dlCut"></label>
     <div class="status" id="dlMsg">Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.</div>
@@ -325,6 +377,21 @@ tr.sus td{background:var(--soft-red)!important}
   <div class="ft"><button class="btn" id="dlSave" disabled>Guardar en la base de datos</button></div>
 </dialog>
 
+<dialog id="df">
+  <div class="hd"><span>Inconsistencias falsas del mes</span><button class="btn alt" style="padding:3px 10px" id="dfClose">✕</button></div>
+  <div class="bd">
+    <label class="fld">Mes<select id="dfMes" style="font:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px"></select></label>
+    <div class="note" id="dfSis" style="margin:-4px 0 12px"></div>
+    <label class="fld">Total de inconsistencias falsas del mes<input type="number" id="dfN" min="0" step="1" placeholder="Ej. 28"></label>
+    <div class="status" id="dfMsg">Reales = en sistema − falsas. El ratio del mes se recalcula con las reales. Deja el campo vacío para quitar el dato.</div>
+  </div>
+  <div class="ft"><button class="btn" id="dfSave">Guardar</button></div>
+</dialog>
+<dialog id="dt">
+  <div class="hd"><span>Nombres de tiendas</span><button class="btn alt" style="padding:3px 10px" id="dtClose">✕</button></div>
+  <div class="bd"><div class="note" style="margin:0 0 10px">Código de tienda del WMS y el nombre que se mostrará en el tablero. Se guarda para todos.</div><div id="dtRows"></div><button class="btn alt" id="dtAdd" style="margin-top:6px">+ Agregar tienda</button></div>
+  <div class="ft"><span class="status" id="dtMsg" style="margin-right:auto"></span><button class="btn" id="dtSave">Guardar</button></div>
+</dialog>
 <dialog id="dh">
   <div class="hd"><span>Agregar mes cerrado</span><button class="btn alt" style="padding:3px 10px" id="dhClose">✕</button></div>
   <div class="bd">
@@ -456,7 +523,7 @@ async function refresh(cut){
     let c=cut&&cortes.includes(cut)?cut:cortes[0]||null;
     $('cut').innerHTML=cortes.map(f=>`<option value="${f}">${fechaCorta(f)}</option>`).join('');
     if(c) $('cut').value=c;
-    await loadCut(c);
+    await Promise.all([loadCut(c),loadTarimas()]);
     render();
   }catch(err){toast('No se pudieron leer los datos: '+esc(err.message),0)}
   finally{busy(false)}
@@ -515,7 +582,7 @@ function render(){
   $('hdrStatus').innerHTML=esc(sbUser||'')+loaded;
   if(!curCut){
     $('empty').hidden=false;$('dash').hidden=true;$('mesTxt').textContent='';$('tagCut').textContent='Sin datos';
-    $('srcStatus').textContent='';lastCur=null;renderHist();renderTiendas();return;
+    $('srcStatus').textContent='';lastCur=null;renderHist();renderTiendas();renderTarimas();return;
   }
   $('empty').hidden=true;$('dash').hidden=false;
   const cal=calendar();
@@ -559,6 +626,7 @@ function render(){
   renderRankings(off);
   renderTable(off);
   renderTiendas();
+  renderTarimas();
   $('sup').innerHTML=sup.map(r=>`<span>${esc(r.u)} · <b>${nf(r.picks)}</b> picks · ${r.inc} inc.</span>`).join('')||'<span>Ninguno</span>';
   const missing=pickers.filter(p=>!data.some(r=>r.username.trim().toLowerCase()===p.u.trim().toLowerCase()));
   { const H=off.reduce((a,r)=>a+r.horas,0), N=off.reduce((a,r)=>a+r.num,0), bd={};
@@ -578,7 +646,7 @@ function renderRot(off,cal){
     const g=off.filter(r=>r.b===b).sort((x,y)=>x.u.localeCompare(y.u));
     if(!g.length) return;
     const A=g.filter((_,i)=>i%2===0), B=g.filter((_,i)=>i%2===1);
-    h+=`<div><b style="color:${BCOLOR[b]==='#F8B810'?'#B07F00':BCOLOR[b]}">${b}</b><br><span class="a">Sábado (${A.length}):</span> ${A.map(r=>short(r.u)).join(', ')}<br><span class="s">Domingo (${B.length}):</span> ${B.length?B.map(r=>short(r.u)).join(', '):'<i>sin cobertura</i>'}</div>`;
+    h+=`<div><b style="color:${BCOLOR[b]==='#F8B810'?'var(--warn-ink)':BCOLOR[b]}">${b}</b><br><span class="a">Sábado (${A.length}):</span> ${A.map(r=>short(r.u)).join(', ')}<br><span class="s">Domingo (${B.length}):</span> ${B.length?B.map(r=>short(r.u)).join(', '):'<i>sin cobertura</i>'}</div>`;
   });
   h+='</div>';
   p.innerHTML=h;
@@ -769,9 +837,9 @@ function parseTiempo(rows){
 }
 
 /* ---------- carga diaria ---------- */
-let pend={res:null,tim:null,det:null,resName:'',timName:'',detName:''};
+let pend={res:null,tim:null,det:null,tar:null,resName:'',timName:'',detName:'',tarName:''};
 $('btnLoad').onclick=()=>{
-  pend={res:null,tim:null,det:null,resName:'',timName:'',detName:''};
+  pend={res:null,tim:null,det:null,tar:null,resName:'',timName:'',detName:'',tarName:''};
   $('dlFiles').value='';$('dlInfo').innerHTML='';$('dlCut').value='';$('dlSave').disabled=true;
   $('dlMsg').textContent='Se toma automáticamente la última fecha del archivo de tiempos. Si cargas de nuevo la misma fecha, se reemplaza.';
   $('dl').showModal();
@@ -793,6 +861,13 @@ $('dlFiles').onchange=async e=>{
         const fs=pend.tim.map(r=>r.fecha).sort();
         info.push(`✔ <b>Tiempo de picking</b>: ${pend.tim.length} filas, del ${fechaCorta(fs[0])} al ${fechaCorta(fs[fs.length-1])}`);
         $('dlCut').value=fs[fs.length-1];
+      }else if(cols.includes('barra_tarima')&&cols.includes('tienda_destino_id')){
+        // varios reportes de tarimas (por ejemplo bodega 02 y bodega 10) se suman en la misma carga
+        const nuevas=parseTarimas(rows), m=new Map((pend.tar||[]).map(r=>[r.id,r]));
+        nuevas.forEach(r=>m.set(r.id,r));
+        pend.tar=[...m.values()];pend.tarName=pend.tarName?pend.tarName+' + '+f.name:f.name;
+        const bs=[...new Set(nuevas.map(r=>r.bodega))].sort();
+        info.push(`✔ <b>Tarimas pendientes de ingreso</b>: ${nuevas.length} tarimas (bodega ${bs.join(', ')}) · reemplaza el reporte anterior de esa bodega`);
       }else if(cols.includes('tienda_recepciona')&&cols.includes('inconsistencia')){
         pend.det=parseDetalle(rows);pend.detName=f.name;
         const fs=pend.det.map(r=>r.fecha_recepciona.slice(0,10)).sort();
@@ -804,9 +879,10 @@ $('dlFiles').onchange=async e=>{
   if(!pend.res) info.push('⚠ Sin <b>resumen de inconsistencias</b>: los KPIs del día no se actualizan.');
   if(!pend.tim) info.push('⚠ Sin archivo de <b>tiempos</b>: SKUs/hora usará horas fijas.');
   if(!pend.det) info.push('⚠ Sin archivo de <b>inconsistencias por tienda</b>: esa pestaña no se actualiza.');
+  if(!pend.tar) info.push('· Sin reporte de <b>tarimas pendientes</b> (opcional).');
   if(!$('dlCut').value){const t=new Date();$('dlCut').value=ymd(t.getFullYear(),t.getMonth()+1,t.getDate())}
   $('dlInfo').innerHTML=info.join('<br>');
-  $('dlSave').disabled=!(pend.res||pend.tim||pend.det);
+  $('dlSave').disabled=!(pend.res||pend.tim||pend.det||pend.tar);
 };
 $('dlSave').onclick=async()=>{
   const cut=$('dlCut').value;
@@ -834,6 +910,13 @@ $('dlSave').onclick=async()=>{
         check(await sb.from('inconsistencias_detalle').insert(pend.det.slice(i,i+500)));
       }
     }
+    if(pend.tar&&pend.tar.length){
+      // el último reporte reemplaza al anterior en las bodegas que trae
+      const bs=[...new Set(pend.tar.map(r=>r.bodega))];
+      $('dlMsg').textContent='Guardando tarimas pendientes…';
+      check(await sb.from('tarimas_pendientes').delete().in('bodega',bs));
+      for(let i=0;i<pend.tar.length;i+=500) check(await sb.from('tarimas_pendientes').insert(pend.tar.slice(i,i+500)));
+    }
     if(pend.res||pend.tim){
       $('dlMsg').textContent='Actualizando resumen del mes…';
       await saveMonthSummary(cut);
@@ -841,6 +924,7 @@ $('dlSave').onclick=async()=>{
     const log={fecha_corte:cut,archivo_resumen:pend.resName||null,archivo_tiempos:pend.timName||null,
       filas_resumen:pend.res?pend.res.length:0,filas_tiempos:pend.tim?pend.tim.length:0};
     if(pend.det){log.archivo_detalle=pend.detName;log.filas_detalle=pend.det.length}
+    if(pend.tar){log.archivo_tarimas=pend.tarName;log.filas_tarimas=pend.tar.length}
     check(await sb.from('cargas').insert(log));
     $('dl').close();
     await refresh(cut);
@@ -867,7 +951,7 @@ function snapshot(rows, tmap){
 // No sobrescribe meses agregados a mano.
 async function saveMonthSummary(cut){
   const mes=cut.slice(0,7);
-  const ex=check(await sb.from('historial').select('auto').eq('mes',mes));
+  const ex=check(await sb.from('historial').select('auto,resumen').eq('mes',mes));
   if(ex.length&&!ex[0].auto) return;
   const [y,m]=mes.split('-').map(Number), next=m===12?ymd(y+1,1,1):ymd(y,m+1,1);
   const last=check(await sb.from('cortes').select('fecha_corte').gte('fecha_corte',mes+'-01').lt('fecha_corte',next).order('fecha_corte',{ascending:false}).limit(1));
@@ -875,7 +959,7 @@ async function saveMonthSummary(cut){
   const res=await fetchAll(()=>sb.from('resumen_inconsistencias').select('username,dias,cant_pick,inconsistencias').eq('fecha_corte',c).order('username'));
   const tim=await fetchAll(()=>sb.from('tiempo_picking').select('username,fecha,total_lineas_pickeadas,total_skus_pickeados,lineas_por_hora').gte('fecha',mes+'-01').lte('fecha',c).order('username').order('fecha'));
   if(!res.length) return;
-  const s=snapshot(res,aggTime(tim));
+  const s=withFalsas(snapshot(res,aggTime(tim)),ex.length?ex[0].resumen.falsas:null);
   check(await sb.from('historial').upsert({mes,resumen:{...s,corte:c},auto:true,actualizado:new Date().toISOString()}));
 }
 function renderHist(){
@@ -919,11 +1003,55 @@ $('hSave').onclick=async()=>{
     const rows=parseResumen(await readSheet(f1));
     if(!rows.length) throw new Error('el resumen no tiene filas válidas');
     const tmap=f2?aggTime(await readSheet(f2)):null;
-    const s=snapshot(rows,tmap);
+    const prev=hist.find(h=>h.key===mv);
+    const s=withFalsas(snapshot(rows,tmap),prev?prev.falsas:null);
     check(await sb.from('historial').upsert({mes:mv,resumen:s,auto:false,actualizado:new Date().toISOString()}));
     hist=hist.filter(h=>h.key!==mv).concat({...s,key:mv,label:mesLabel(mv),auto:false});
     $('dh').close();renderHist();toast('Resumen de '+mesLabel(mv)+' guardado.');
   }catch(err){$('hMsg').textContent='No pude guardar: '+err.message}
+};
+
+/* ---------- inconsistencias falsas ---------- */
+// El resumen del sistema incluye las falsas: en sistema = total del resumen; reales = en sistema − falsas.
+function withFalsas(s,falsas){
+  if(falsas==null||falsas==='') return s;
+  const sis=s.inc;
+  return {...s,incSis:sis,falsas:+falsas,inc:Math.max(sis-(+falsas),0)};
+}
+const sisOf=h=>h.incSis!=null?h.incSis:h.inc;
+function dfInfo(){
+  const h=hist.find(x=>x.key===$('dfMes').value); if(!h){$('dfSis').textContent='';return}
+  const sis=sisOf(h), n=$('dfN').value===''?null:+$('dfN').value;
+  $('dfSis').innerHTML=sis==null?'Este mes no tiene inconsistencias en sistema registradas.':
+    `En sistema: <b>${nf(sis)}</b>`+(n!=null&&n>=0?` · Reales: <b>${nf(Math.max(sis-n,0))}</b> · Ratio: <b>${nf(sis-n>0?h.picks/(sis-n):Infinity,1)}</b>`:'');
+}
+$('btnFalsas').onclick=()=>{
+  const months=hist.filter(h=>!h.acc).sort((a,b)=>b.key.localeCompare(a.key));
+  if(!months.length){toast('Todavía no hay meses guardados.');return}
+  $('dfMes').innerHTML=months.map(h=>`<option value="${h.key}">${h.label}</option>`).join('');
+  const sel=months.find(h=>h.falsas==null&&h.key<(lastCur?lastCur.key:'9999'))||months[0];
+  $('dfMes').value=sel.key;
+  const h=sel; $('dfN').value=h.falsas!=null?h.falsas:(h.incSis!=null?h.incSis-h.inc:'');
+  $('dfMsg').textContent='Reales = en sistema − falsas. El ratio del mes se recalcula con las reales. Deja el campo vacío para quitar el dato.';
+  dfInfo();$('df').showModal();
+};
+$('dfMes').onchange=()=>{const h=hist.find(x=>x.key===$('dfMes').value);$('dfN').value=h&&h.falsas!=null?h.falsas:(h&&h.incSis!=null?h.incSis-h.inc:'');dfInfo()};
+$('dfN').oninput=dfInfo;
+$('dfClose').onclick=()=>$('df').close();
+$('dfSave').onclick=async()=>{
+  const k=$('dfMes').value, h=hist.find(x=>x.key===k); if(!h) return;
+  const raw=$('dfN').value.trim(), sis=sisOf(h);
+  if(sis==null){$('dfMsg').textContent='Este mes no tiene inconsistencias en sistema.';return}
+  const n=raw===''?null:Math.round(+raw);
+  if(n!=null&&(!(n>=0)||n>sis)){$('dfMsg').textContent='Escribe un número entre 0 y '+nf(sis)+'.';return}
+  const {key,label,auto,...base}=h;
+  const res={...base,inc:sis};delete res.incSis;delete res.falsas;
+  const out=n==null?res:withFalsas(res,n);
+  try{
+    check(await sb.from('historial').upsert({mes:k,resumen:out,auto:!!auto,actualizado:new Date().toISOString()}));
+    hist=hist.filter(x=>x.key!==k).concat({...out,key,label,auto});
+    $('df').close();renderHist();toast(n==null?'Se quitó el dato de falsas de '+label+'.':'Falsas de '+label+': '+nf(n)+' · reales: '+nf(out.inc)+'.');
+  }catch(err){$('dfMsg').textContent='No se pudo guardar: '+err.message}
 };
 
 /* ---------- controles ---------- */
@@ -1007,8 +1135,161 @@ $('fCsv').onclick=()=>{
   a.download='inconsistencias_tienda_'+(curCut||'')+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 
+/* ---------- tarimas pendientes de ingreso ---------- */
+const BODEGAS_TP=['02','10'];
+let tar=[], tarErr=null, cmts={}, tiendasCat={}, tpBod='02', tpVista='pend', tpSort='dias', tpDir=-1;
+// Las tarimas en estado Detallado van en su propio apartado
+const isDet=r=>(r.estado||'').toLowerCase()==='detallado';
+const tpBase=()=>tar.filter(r=>r.bodega===tpBod&&(tpVista==='det'?isDet(r):!isDet(r))).map(tpRow);
+const codeTxt=v=>{if(v==null||v==='')return null;let c=String(v).trim();if(/^\d$/.test(c))c='0'+c;return c};
+function parseTarimas(rows){
+  const m=new Map();
+  rows.forEach(r=>{ if(!r.id) return;
+    const o={id:String(r.id).trim(),barra_tarima:r.barra_tarima==null?null:String(r.barra_tarima),tarima:r.tarima==null?null:String(r.tarima),
+      fecha_creacion:toDateTime(r.fecha_creacion),estado:r.estado==null?null:String(r.estado).trim(),tienda_origen:codeTxt(r.tienda_origen_id),
+      bodega:codeTxt(r.tienda_destino_id)||'?',numero_contenedor:r.numero_contenedor==null?null:String(r.numero_contenedor),
+      fecha_salida:toDateTime(r.fecha_salida),fecha_inicio_carga:toDateTime(r.fecha_inicio_carga),fecha_fin_carga:toDateTime(r.fecha_fin_carga),
+      fecha_llegada:toDateTime(r.fecha_llegada),fecha_retorno:toDateTime(r.fecha_retorno),
+      usuario_carga:r.usuario_carga_contenedor==null?null:String(r.usuario_carga_contenedor).trim(),url_acceso:r.url_acceso==null?null:String(r.url_acceso).trim()};
+    m.set(o.id,o);});
+  return [...m.values()];
+}
+async function loadTarimas(){
+  tarErr=null;
+  try{
+    const [t,c,ti]=await Promise.all([
+      fetchAll(()=>sb.from('tarimas_pendientes').select('*').order('id')),
+      fetchAll(()=>sb.from('tarimas_comentarios').select('id,comentario,usuario,actualizado').order('id')),
+      fetchAll(()=>sb.from('catalogo_tiendas').select('codigo,nombre').order('codigo'))]);
+    tar=t; cmts=Object.fromEntries(c.map(x=>[x.id,x])); tiendasCat=Object.fromEntries(ti.map(x=>[x.codigo,x.nombre]));
+  }catch(err){tar=[];tarErr=err.message}
+}
+const tName=c=>tiendasCat[c]||'';
+const estadoTxt=e=>e?e.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/ ([A-Z])/g,m=>m.toLowerCase()):'';
+const hoursSince=s=>s?(Date.now()-new Date(s).getTime())/3600e3:null;
+function tpRow(r){
+  const base=r.fecha_fin_carga||r.fecha_creacion, h=hoursSince(base);
+  return {...r,tienda:tName(r.tienda_origen),dias:h==null?null:h/24,desdeCreacion:!r.fecha_fin_carga,comentario:(cmts[r.id]||{}).comentario||''};
+}
+const diasCls=d=>d==null?'':d<1?'d-ok':d<3?'d-warn':'d-bad';
+function tpFiltered(rows){
+  const e=$('tpEstado').value,t=$('tpTienda').value,q=$('tpTxt').value.trim().toLowerCase();
+  return rows.filter(r=>(!e||r.estado===e)&&(!t||r.tienda_origen===t)&&
+    (!q||[r.tarima,r.numero_contenedor,r.usuario_carga,r.barra_tarima,r.comentario].some(v=>(v||'').toLowerCase().includes(q))));
+}
+function renderTarimas(){
+  const bods=[...new Set(BODEGAS_TP.concat(tar.map(r=>r.bodega)))].sort();
+  if(!bods.includes(tpBod)) tpBod=bods[0];
+  $('tpBod').innerHTML=bods.map(b=>`<button data-b="${esc(b)}" class="${b===tpBod?'on':''}">Bodega ${esc(b)} · ${tar.filter(r=>r.bodega===b).length}</button>`).join('');
+  const inB=tar.filter(r=>r.bodega===tpBod), nDet=inB.filter(isDet).length;
+  $('tpVista').innerHTML=`<button data-v="pend" class="${tpVista==='pend'?'on':''}">Pendientes de ingreso · ${inB.length-nDet}</button><button data-v="det" class="${tpVista==='det'?'on':''}">Detalladas · ${nDet}</button>`;
+  $('tpVista').querySelectorAll('button').forEach(x=>x.onclick=()=>{tpVista=x.dataset.v;$('tpEstado').value='';$('tpTienda').value='';renderTarimas()});
+  $('tpBod').querySelectorAll('button').forEach(x=>x.onclick=()=>{tpBod=x.dataset.b;$('tpEstado').value='';$('tpTienda').value='';renderTarimas()});
+  const empty=$('tpEmpty');
+  if(tarErr){empty.hidden=false;$('tpBody').hidden=true;$('tpNote').textContent='';
+    empty.innerHTML='<b>Falta crear las tablas de tarimas.</b><div class="note">En Supabase > SQL Editor ejecuta el archivo <b>04_tarimas_pendientes.sql</b>. Detalle: '+esc(tarErr)+'</div>';return}
+  const all=tpBase();
+  const last=inB.reduce((a,r)=>r.cargado_en>a?r.cargado_en:a,'');
+  $('tpNote').textContent=last?'· reporte cargado el '+new Date(last).toLocaleString('es-GT',{dateStyle:'short',timeStyle:'short'}):'';
+  if(!all.length){empty.hidden=false;$('tpBody').hidden=true;
+    empty.innerHTML=inB.length?`<b>No hay tarimas ${tpVista==='det'?'detalladas':'pendientes de ingreso'} en la bodega ${esc(tpBod)}.</b>`:`<b>Aún no se ha cargado el reporte de la bodega ${esc(tpBod)}.</b><div class="note">Exporta del WMS el reporte «tarimas nunca recepcionadas» con destino bodega ${esc(tpBod)} y cárgalo con «Cargar datos del día». También sirve un solo archivo que traiga las dos bodegas.</div>`;return}
+  empty.hidden=true;$('tpBody').hidden=false;
+  fillSelect('tpEstado',[...new Set(all.map(r=>r.estado).filter(Boolean))].sort(),'Todos');
+  fillSelect('tpTienda',[...new Set(all.map(r=>r.tienda_origen).filter(Boolean))].sort(),'Todas');
+  $('tpTienda').querySelectorAll('option').forEach(o=>{if(o.value&&tName(o.value))o.textContent=o.value+' · '+tName(o.value)});
+  $('tpEstado').querySelectorAll('option').forEach(o=>{if(o.value)o.textContent=estadoTxt(o.value)});
+  const rows=tpFiltered(all);
+  const cont=new Set(rows.map(r=>r.numero_contenedor).filter(Boolean)).size;
+  const old=rows.filter(r=>r.dias!=null).sort((a,b)=>b.dias-a.dias)[0];
+  const tiendasN=new Set(rows.map(r=>r.tienda_origen)).size;
+  const atr=rows.filter(r=>r.dias!=null&&r.dias>=3).length;
+  $('tpKpis').innerHTML=`
+    <div class="card kpi k1"><div class="lbl">${tpVista==='det'?'Tarimas detalladas':'Tarimas pendientes'}</div><div class="val">${nf(rows.length)}</div><div class="sub">bodega ${esc(tpBod)}${rows.length!==all.length?' · de '+nf(all.length)+' en el reporte':''}</div></div>
+    <div class="card kpi k2"><div class="lbl">Con 3 días o más</div><div class="val">${nf(atr)}</div><div class="sub">desde la carga a contenedor</div></div>
+    <div class="card kpi k3"><div class="lbl">Más antigua</div><div class="val">${old?nf(old.dias,1)+' d':'–'}</div><div class="sub">${old?'tarima '+esc(old.tarima||'')+' · '+esc(old.tienda||old.tienda_origen||''):''}</div></div>
+    <div class="card kpi k4"><div class="lbl">Contenedores · tiendas</div><div class="val">${nf(cont)} · ${nf(tiendasN)}</div><div class="sub">contenedores distintos · tiendas de origen</div></div>`;
+  const byE={}; all.forEach(r=>{byE[r.estado]=(byE[r.estado]||0)+1});
+  const selE=$('tpEstado').value;
+  $('tpEstados').innerHTML=Object.entries(byE).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<button data-e="${esc(e)}" class="${e===selE?'on':''}">${esc(estadoTxt(e))} <b>${n}</b></button>`).join('');
+  $('tpEstados').querySelectorAll('button').forEach(x=>x.onclick=()=>{$('tpEstado').value=$('tpEstado').value===x.dataset.e?'':x.dataset.e;renderTarimas()});
+  const byT={};
+  rows.forEach(r=>{const k=r.tienda_origen||'?';const x=byT[k]||(byT[k]={c:k,n:0,cont:new Set(),max:null,est:{}});x.n++;if(r.numero_contenedor)x.cont.add(r.numero_contenedor);
+    if(r.dias!=null&&(x.max==null||r.dias>x.max))x.max=r.dias;x.est[r.estado]=(x.est[r.estado]||0)+1});
+  const selT=$('tpTienda').value;
+  $('tpTiendas').innerHTML='<thead><tr><th class="l">Tienda de origen</th><th class="l">Tienda</th><th>Tarimas</th><th>Contenedores</th><th>Más antigua (días)</th><th class="l">Estados</th></tr></thead><tbody>'+
+    Object.values(byT).sort((a,b)=>b.n-a.n).map(x=>`<tr data-t="${esc(x.c)}" class="${x.c===selT?'sel':''}" style="cursor:pointer"><td class="l"><b>${esc(x.c)}</b></td><td class="l">${esc(tName(x.c))||'<span class="status">sin nombre</span>'}</td><td>${x.n}</td><td>${x.cont.size}</td><td class="${diasCls(x.max)}">${x.max==null?'–':nf(x.max,1)}</td><td class="l">${Object.entries(x.est).map(([e,n])=>esc(estadoTxt(e))+' '+n).join(' · ')}</td></tr>`).join('')+'</tbody>';
+  $('tpTiendas').querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>{$('tpTienda').value=$('tpTienda').value===tr.dataset.t?'':tr.dataset.t;renderTarimas()});
+  const C=[['tarima','No. de tarima',''],['numero_contenedor','No. de contenedor',''],['estado','Estado','l'],['tienda_origen','Tienda de origen','l'],['tienda','Tienda','l'],
+    ['fecha_fin_carga','Fecha fin de carga a contenedor','l'],['dias','Días desde carga',''],['fecha_llegada','Fecha llegada','l'],['usuario_carga','Usuario carga a contenedor','l'],['comentario','Comentarios','l']];
+  const numK=['tarima','numero_contenedor','dias'];
+  const srt=rows.slice().sort((a,b)=>{let x=a[tpSort],y=b[tpSort];if(numK.includes(tpSort)){x=x==null?-1:+x;y=y==null?-1:+y;return tpDir*(x-y)}return tpDir*String(x||'').localeCompare(String(y||''))});
+  $('tpCount').textContent=nf(rows.length)+' tarimas';
+  $('tpDet').innerHTML='<thead><tr>'+C.map(([k,l,c])=>`<th data-k="${k}" class="${c}">${l}${tpSort===k?(tpDir>0?' ▲':' ▼'):''}</th>`).join('')+'<th class="l">WMS</th></tr></thead><tbody>'+
+    srt.map(r=>`<tr><td><b>${esc(r.tarima||'')}</b></td><td>${esc(r.numero_contenedor||'–')}</td><td class="l">${esc(estadoTxt(r.estado))}</td><td class="l">${esc(r.tienda_origen||'')}</td><td class="l">${esc(r.tienda)}</td>
+      <td class="l">${r.fecha_fin_carga?fdt(r.fecha_fin_carga):'<span class="status">sin cargar</span>'}</td>
+      <td class="${diasCls(r.dias)}" title="${r.desdeCreacion?'Aún no se carga a contenedor: días desde la creación de la tarima':''}">${r.dias==null?'–':nf(r.dias,1)}${r.desdeCreacion?'*':''}</td>
+      <td class="l">${r.fecha_llegada?fdt(r.fecha_llegada):'–'}</td><td class="l">${esc(r.usuario_carga||'–')}</td>
+      <td class="l"><input class="cmt" data-id="${esc(r.id)}" value="${esc(r.comentario)}" placeholder="Agregar comentario" title="${cmts[r.id]&&cmts[r.id].usuario?esc('Último cambio: '+cmts[r.id].usuario):''}"></td>
+      <td class="l">${r.url_acceso&&/^https?:\/\//i.test(r.url_acceso)?`<a class="wms" href="${esc(r.url_acceso)}" target="_blank" rel="noopener">Abrir</a>`:''}</td></tr>`).join('')+
+    '</tbody>'+(rows.some(r=>r.desdeCreacion)?'<tfoot><tr><td colspan="11" class="l" style="font-weight:400">* Aún no se carga a contenedor: días desde la creación de la tarima.</td></tr></tfoot>':'');
+  $('tpDet').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(tpSort===k)tpDir*=-1;else{tpSort=k;tpDir=numK.includes(k)?-1:1}renderTarimas()});
+  $('tpDet').querySelectorAll('input.cmt').forEach(inp=>inp.onchange=async()=>{
+    const id=inp.dataset.id, v=inp.value.trim();
+    try{
+      if(v) check(await sb.from('tarimas_comentarios').upsert({id,comentario:v,usuario:sbUser,actualizado:new Date().toISOString()}));
+      else check(await sb.from('tarimas_comentarios').delete().eq('id',id));
+      if(v) cmts[id]={id,comentario:v,usuario:sbUser}; else delete cmts[id];
+      inp.classList.add('saved');toast('Comentario guardado.',1800);
+    }catch(err){toast('No se pudo guardar el comentario: '+esc(err.message))}
+  });
+}
+['tpEstado','tpTienda'].forEach(id=>$(id).onchange=renderTarimas);
+$('tpTxt').oninput=renderTarimas;
+$('tpClear').onclick=()=>{$('tpEstado').value='';$('tpTienda').value='';$('tpTxt').value='';renderTarimas()};
+$('tpCsv').onclick=()=>{
+  const H=['No. de tarima','No. de contenedor','Estado','Tienda de origen','Tienda','Fecha fin de carga a contenedor','Dias desde carga','Fecha llegada','Usuario carga a contenedor','Comentarios'];
+  const q=v=>{v=v==null?'':String(v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const rows=tpFiltered(tpBase());
+  const lines=[H.join(',')].concat(rows.map(r=>[r.tarima,r.numero_contenedor,estadoTxt(r.estado),r.tienda_origen,r.tienda,fdt(r.fecha_fin_carga),r.dias==null?'':r.dias.toFixed(1),fdt(r.fecha_llegada),r.usuario_carga,r.comentario].map(q).join(',')));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}));
+  a.download='tarimas_'+(tpVista==='det'?'detalladas':'pendientes')+'_B'+tpBod+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+let dtDraft=[];
+function dtDraw(){
+  $('dtRows').innerHTML=dtDraft.map((t,i)=>`<div class="prow" style="grid-template-columns:110px 1fr 34px"><input value="${esc(t.codigo)}" data-i="${i}" data-f="codigo" placeholder="código"><input value="${esc(t.nombre)}" data-i="${i}" data-f="nombre" placeholder="nombre de la tienda"><button data-del="${i}" title="Quitar">✕</button></div>`).join('');
+  $('dtRows').querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{dtDraft[+el.dataset.i][el.dataset.f]=el.value.trim()});
+  $('dtRows').querySelectorAll('[data-del]').forEach(el=>el.onclick=()=>{dtDraft.splice(+el.dataset.del,1);dtDraw()});
+}
+$('btnTiendasCat').onclick=()=>{
+  const codes=[...new Set(Object.keys(tiendasCat).concat(tar.map(r=>r.tienda_origen).filter(Boolean)))].sort();
+  dtDraft=codes.map(c=>({codigo:c,nombre:tiendasCat[c]||''}));
+  $('dtMsg').textContent='Las tiendas sin nombre vienen del último reporte.';dtDraw();$('dt').showModal();
+};
+$('dtAdd').onclick=()=>{dtDraft.push({codigo:'',nombre:''});dtDraw()};
+$('dtClose').onclick=()=>$('dt').close();
+$('dtSave').onclick=async()=>{
+  const keep=dtDraft.filter(t=>t.codigo&&t.nombre).map(t=>({codigo:codeTxt(t.codigo),nombre:t.nombre}));
+  const gone=Object.keys(tiendasCat).filter(c=>!keep.some(t=>t.codigo===c));
+  try{
+    $('dtMsg').textContent='Guardando…';
+    if(gone.length) check(await sb.from('catalogo_tiendas').delete().in('codigo',gone));
+    if(keep.length) check(await sb.from('catalogo_tiendas').upsert(keep));
+    tiendasCat=Object.fromEntries(keep.map(t=>[t.codigo,t.nombre]));
+    $('dt').close();renderTarimas();toast('Nombres de tiendas guardados.');
+  }catch(err){$('dtMsg').textContent='No se pudo guardar: '+err.message}
+};
+
+/* ---------- modo oscuro ---------- */
+function setTheme(t){
+  if(t==='dark') document.documentElement.dataset.theme='dark'; else delete document.documentElement.dataset.theme;
+  try{localStorage.setItem('tema',t)}catch(e){}
+  $('btnTheme').textContent=t==='dark'?'☀ Modo claro':'☾ Modo oscuro';
+}
+setTheme(document.documentElement.dataset.theme==='dark'?'dark':'light');
+$('btnTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
 /* ---------- menú ---------- */
-const TABS=['resumen','resultados','tiendas','meses','calculo'];
+const TABS=['resumen','resultados','tiendas','tarimas','meses','calculo'];
 function showTab(t){
   if(!TABS.includes(t)) t='resumen';
   document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.dataset.tab!==t);
