@@ -353,13 +353,14 @@ a.wms{color:var(--accent-ink);font-weight:700}
   <h2>Cómo se calcula</h2>
   <div class="method"><ul>
     <li><b>Ratio</b> = picking acumulado ÷ inconsistencias de embarque (a más alto, mejor). Se compara contra la escala de su bodega (700/350/175 Variedades, 800/400/200 Lavandería, 500/250/125 Bebidas, 300/150/75 Harinas) para obtener la ponderación 35 / 20 / 10 / 0 %.</li>
+    <li><b>Sin inconsistencias</b>: si un picker (o una bodega) no tiene inconsistencias, su ratio es igual a su total de picking, y con ese valor se calcula la ponderación y la meta de ratio.</li>
     <li><b>Meta de ratio</b> = ratio ÷ escala máxima de la bodega (100 % = alcanzó el nivel de 35 %). Picking por Unidad usa la misma escala de ratio que Variedades (700/350/175).</li>
     <li><b>SKUs/hora</b> = líneas pickeadas ÷ horas efectivas del archivo de tiempos (horas = líneas ÷ líneas_por_hora), sumando los días del mes hasta la fecha de corte. Alternativa: SKUs únicos ÷ horas, con el selector superior. Escala por bodega para ponderar 15 / 8 / 0 %.</li>
     <li><b>Fin de semana rotativo</b> (todo el mes): cada sábado y domingo cuenta ½ día equivalente (la mitad del grupo trabaja cada día); cada picker trabaja un día del fin de semana, así que su proyección usa los mismos días equivalentes.</li>
     <li><b>Proyección</b>: área = total acumulado ÷ días hábiles transcurridos × días hábiles del mes. Picker = su promedio por día trabajado × (días trabajados + días hábiles restantes), suponiendo asistencia completa.</li>
     <li><b>Inconsistencias por tienda</b>: Inconsistencia = cantidad enviada − cantidad recibida. Positivo = <b>faltante</b> (llegó menos de lo enviado); negativo = <b>sobrante</b> (llegó más). Se muestran las líneas del mes hasta la fecha de corte. Las líneas con diferencias de 100,000 unidades o más se marcan como posible error de captura (por ejemplo, un código de barras escaneado en el campo de cantidad) y no suman a las unidades.</li>
     <li><b>Inconsistencias falsas</b>: el resumen del sistema incluye las inconsistencias que después resultan falsas. Al cerrar el mes, registra el total de falsas con «Registrar inconsistencias falsas» (pestaña Meses anteriores): <b>reales = en sistema − falsas</b>, y el ratio del mes se calcula con las reales. Mientras el mes está en curso se usa el dato del sistema.</li>
-    <li><b>Tarimas pendientes de ingreso</b>: vienen del último reporte «tarimas nunca recepcionadas». Las tarimas en estado Detallado se muestran aparte, en el apartado «Detalladas»; cada carga reemplaza las tarimas de las bodegas que trae el archivo. Días desde carga = días completos entre la fecha fin de carga a contenedor y ahora (si aún no se cargó, desde la creación de la tarima). Verde: menos de 1 día; amarillo: de 1 a menos de 3; rojo: 3 días o más. Los comentarios se conservan entre cargas.</li>
+    <li><b>Tarimas pendientes de ingreso</b>: vienen del último reporte «tarimas nunca recepcionadas». Las tarimas que ya terminaron su proceso (Detallado e Inconsistencia resuelta) se muestran aparte, en el apartado «Finalizadas»; las que están En piso o En contenedor van en «Sin producto físico» (el producto aún no está en bodega); en «Pendientes de ingreso» quedan las demás (en ruta, entregado, recepcionado, en proceso, etc.); cada carga reemplaza las tarimas de las bodegas que trae el archivo. Días desde carga = días completos entre la fecha fin de carga a contenedor y ahora (si aún no se cargó, desde la creación de la tarima). Verde: menos de 1 día; amarillo: de 1 a menos de 3; rojo: 3 días o más. Los comentarios se conservan entre cargas.</li>
     <li><b>Datos</b>: cada carga diaria guarda una foto del acumulado del mes con su fecha de corte. Volver a cargar el mismo día reemplaza esa foto; el selector «Fecha de corte» permite ver cualquier día ya cargado. El resumen del mes se guarda solo y pasa a «Meses anteriores» cuando cambia el mes.</li>
   </ul></div>
   </section>
@@ -432,6 +433,8 @@ const META = {
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const nf=(v,d=0)=>isFinite(v)?v.toLocaleString('es-GT',{minimumFractionDigits:d,maximumFractionDigits:d}):'∞';
 const $=id=>document.getElementById(id);
+// Ratio = picks ÷ inconsistencias; con 0 inconsistencias el ratio es igual al total de picking
+const ratioOf=(p,i)=>i>0?p/i:p;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fd=v=>Number.isInteger(v)?String(v):v.toFixed(1);
 const pad=n=>String(n).padStart(2,'0');
@@ -564,7 +567,7 @@ function enrich(cal){
     const num=(skuMode==='sku'&&r.skus!=null)?+r.skus:picks;
     const skuh=horas?num/horas:0;
     const incPct=picks?inc/picks*100:0;
-    const ratio=inc>0?picks/inc:Infinity;
+    const ratio=ratioOf(picks,inc);
     const m=b?META[b]:null;
     const top=m&&m.ratio?m.ratio[0][0]:null;
     const meta=top?(ratio/top*100):null;
@@ -595,7 +598,7 @@ function render(){
 
   // totales del área (todos los usuarios del Excel)
   const sP=rows.reduce((a,r)=>a+r.picks,0), sI=rows.reduce((a,r)=>a+r.inc,0);
-  const ratio=sI?sP/sI:Infinity;
+  const ratio=ratioOf(sP,sI);
   const perDay=cal.el?sP/cal.el:0, incDay=cal.el?sI/cal.el:0;
   $('tPick').textContent=nf(sP);
   $('tPickSub').textContent='Pickers oficiales: '+nf(off.reduce((a,r)=>a+r.picks,0))+' · apoyos: '+nf(sup.reduce((a,r)=>a+r.picks,0));
@@ -612,7 +615,7 @@ function render(){
   $('pPickSub').textContent='faltan ~'+nf(pP-sP)+' picks en '+fd(cal.rem)+' días hábiles';
   $('pInc').textContent=nf(pI);
   $('pIncSub').textContent='faltan ~'+nf(pI-sI)+' inconsistencias a este ritmo';
-  $('pRatio').textContent=nf(pI?pP/pI:Infinity,1);
+  $('pRatio').textContent=nf(ratioOf(pP,pI),1);
   $('pRatioSub').textContent='vs. '+nf(ratio,1)+' acumulado hoy';
   const av=cal.tot?cal.el/cal.tot*100:0;
   $('pAvance').textContent=nf(av,0)+' %';
@@ -630,7 +633,7 @@ function render(){
   $('sup').innerHTML=sup.map(r=>`<span>${esc(r.u)} · <b>${nf(r.picks)}</b> picks · ${r.inc} inc.</span>`).join('')||'<span>Ninguno</span>';
   const missing=pickers.filter(p=>!data.some(r=>r.username.trim().toLowerCase()===p.u.trim().toLowerCase()));
   { const H=off.reduce((a,r)=>a+r.horas,0), N=off.reduce((a,r)=>a+r.num,0), bd={};
-    BODEGAS.forEach(b=>{const g=off.filter(r=>r.b===b); if(!g.length)return; const P=g.reduce((a,r)=>a+r.projP,0),I=g.reduce((a,r)=>a+r.projI,0),h=g.reduce((a,r)=>a+r.horas,0),n=g.reduce((a,r)=>a+r.num,0); bd[b]={picks:P,inc:I,ratio:I?P/I:null,skuh:h?n/h:0}});
+    BODEGAS.forEach(b=>{const g=off.filter(r=>r.b===b); if(!g.length)return; const P=g.reduce((a,r)=>a+r.projP,0),I=g.reduce((a,r)=>a+r.projI,0),h=g.reduce((a,r)=>a+r.horas,0),n=g.reduce((a,r)=>a+r.num,0); bd[b]={picks:P,inc:I,ratio:ratioOf(P,I),skuh:h?n/h:0}});
     lastCur={key:ymd(cal.y,cal.m,1).slice(0,7),label:mesLabel(ymd(cal.y,cal.m,1)),picks:pP,inc:pI,perDay:perDay,skuh:H?N/H:0,bod:bd}; renderHist(); }
   $('srcStatus').textContent='Resumen con corte al '+fechaCorta(curCut)+' · '+(hasTime?'Tiempos del 1 al '+cal.d+' de '+MESES[cal.m-1]:'Sin dato de tiempo: se usa '+($('hrs').value||7.67)+' h/jornada')+(missing.length?' · Sin datos: '+missing.map(m=>m.u).join(', '):'');
 }
@@ -683,7 +686,7 @@ function renderBodegas(off,cal){
     const g=off.filter(r=>r.b===b);
     if(!g.length) return '';
     const P=g.reduce((a,r)=>a+r.picks,0), I=g.reduce((a,r)=>a+r.inc,0), H=g.reduce((a,r)=>a+r.horas,0), N=g.reduce((a,r)=>a+r.num,0);
-    const ratio=I?P/I:Infinity, skuh=H?N/H:0;
+    const ratio=ratioOf(P,I), skuh=H?N/H:0;
     const m=META[b];
     const pr=m.ratio?tier(m.ratio,ratio):null, ps=tier(m.sku,skuh);
     const projP=g.reduce((a,r)=>a+r.projP,0), projI=g.reduce((a,r)=>a+r.projI,0);
@@ -745,7 +748,7 @@ function renderTable(off){
     <td>${pill(r.pr,35)}</td><td>${pill(r.ps,15)}</td><td><b>${r.tot}%</b></td>
     <td class="pjc">${nf(r.projP)}</td><td class="pjc">${nf(r.projI,1)}</td></tr>`).join('');
   const P=off.reduce((a,r)=>a+r.picks,0),I=off.reduce((a,r)=>a+r.inc,0);
-  const foot=`<tfoot><tr><td></td><td>Total pickers</td><td></td><td></td><td>${nf(P)}</td><td>${nf(I)}</td><td>${nf(P?I/P*100:0,2)}</td><td></td><td></td><td>${nf(I?P/I:Infinity,1)}</td><td></td><td></td><td></td><td></td><td>${nf(off.reduce((a,r)=>a+r.projP,0))}</td><td>${nf(off.reduce((a,r)=>a+r.projI,0),1)}</td></tr></tfoot>`;
+  const foot=`<tfoot><tr><td></td><td>Total pickers</td><td></td><td></td><td>${nf(P)}</td><td>${nf(I)}</td><td>${nf(P?I/P*100:0,2)}</td><td></td><td></td><td>${nf(ratioOf(P,I),1)}</td><td></td><td></td><td></td><td></td><td>${nf(off.reduce((a,r)=>a+r.projP,0))}</td><td>${nf(off.reduce((a,r)=>a+r.projI,0),1)}</td></tr></tfoot>`;
   $('tbl').innerHTML=head+'<tbody>'+body+'</tbody>'+foot;
   $('tbl').querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
     const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=(k==='u'||k==='b'||k==='inc'||k==='incPct')?1:-1}
@@ -944,7 +947,7 @@ function snapshot(rows, tmap){
     const x=bod[b]||(bod[b]={picks:0,inc:0,h:0}); x.picks+=r.cant_pick;x.inc+=r.inconsistencias;x.h+=h;
     N+=r.cant_pick;H+=h;
   });
-  Object.values(bod).forEach(x=>{x.skuh=x.h?x.picks/x.h:0;x.ratio=x.inc?x.picks/x.inc:null;delete x.h});
+  Object.values(bod).forEach(x=>{x.skuh=x.h?x.picks/x.h:0;x.ratio=ratioOf(x.picks,x.inc);delete x.h});
   return {picks:P,inc:I,dias,perDay:P/dias,skuh:H?N/H:0,bod};
 }
 // Guarda el resumen del mes de la fecha de corte; cuando el mes termina queda como "mes cerrado".
@@ -969,7 +972,7 @@ function renderHist(){
   const rows=months.map(h=>({...h,cur:false}));
   if(lastCur) rows.push({...lastCur,cur:true});
   const maxP=Math.max(...rows.map(r=>r.picks),1);
-  const incTxt=r=>r.inc==null?'inc. n/d':nf(r.inc)+' inc. · ratio '+nf(r.inc?r.picks/r.inc:Infinity,1);
+  const incTxt=r=>r.inc==null?'inc. n/d':nf(r.inc)+' inc. · ratio '+nf(ratioOf(r.picks,r.inc),1);
   $('histBox').innerHTML=(months.length?'':'<div class="note" style="margin:0 0 8px">Aún no hay meses cerrados guardados.</div>')+
     rows.map(r=>`<div class="row"><div class="mn">${r.label}<small>${r.cur?'proyección al cierre':'cerrado · '+r.dias+' días con operación'}</small></div>
       <div><div class="bar2 ${r.cur?'cur':''}" style="width:${r.picks/maxP*100}%"></div></div>
@@ -984,7 +987,7 @@ function renderHist(){
   const line=(r,prev)=>{
     const dl=prev&&prev.perDay&&r.perDay?(r.perDay/prev.perDay-1)*100:null;
     const noInc=r.inc==null;
-    return `<tr><td><b>${r.label}</b>${r.cur?' <span class="chip light" style="--c:var(--sun)">proy.</span>':''}${r.acc?' <span class="chip" style="--c:var(--olive)">acumulado</span>':''}</td><td>${nf(r.picks)}</td><td>${noInc?'n/d':nf(r.inc)}</td><td>${r.incSis==null?'–':nf(r.incSis)}</td><td>${r.incSis==null?'–':nf(r.incSis-r.inc)}</td><td>${noInc?'n/d':nf(r.inc?r.picks/r.inc:Infinity,1)}</td><td>${r.perDay?nf(r.perDay):'–'}</td>
+    return `<tr><td><b>${r.label}</b>${r.cur?' <span class="chip light" style="--c:var(--sun)">proy.</span>':''}${r.acc?' <span class="chip" style="--c:var(--olive)">acumulado</span>':''}</td><td>${nf(r.picks)}</td><td>${noInc?'n/d':nf(r.inc)}</td><td>${r.incSis==null?'–':nf(r.incSis)}</td><td>${r.incSis==null?'–':nf(r.incSis-r.inc)}</td><td>${noInc?'n/d':nf(ratioOf(r.picks,r.inc),1)}</td><td>${r.perDay?nf(r.perDay):'–'}</td>
     <td class="${dl===null?'':dl>=0?'up':'dn'}">${dl===null?'–':(dl>=0?'▲ ':'▼ ')+nf(Math.abs(dl),1)+'%'}</td><td>${nf(r.skuh,1)}</td>`+
     BODEGAS.map(b=>{const x=r.bod&&r.bod[b];return `<td>${x&&x.skuh?nf(x.skuh,1):'–'}</td>`}).join('')+'</tr>'};
   const body=acc.map(a=>line(a,null)).join('')+rows.map((r,i)=>line(r,i>0?rows[i-1]:null)).join('');
@@ -1023,7 +1026,7 @@ function dfInfo(){
   const h=hist.find(x=>x.key===$('dfMes').value); if(!h){$('dfSis').textContent='';return}
   const sis=sisOf(h), n=$('dfN').value===''?null:+$('dfN').value;
   $('dfSis').innerHTML=sis==null?'Este mes no tiene inconsistencias en sistema registradas.':
-    `En sistema: <b>${nf(sis)}</b>`+(n!=null&&n>=0?` · Reales: <b>${nf(Math.max(sis-n,0))}</b> · Ratio: <b>${nf(sis-n>0?h.picks/(sis-n):Infinity,1)}</b>`:'');
+    `En sistema: <b>${nf(sis)}</b>`+(n!=null&&n>=0?` · Reales: <b>${nf(Math.max(sis-n,0))}</b> · Ratio: <b>${nf(ratioOf(h.picks,sis-n),1)}</b>`:'');
 }
 $('btnFalsas').onclick=()=>{
   const months=hist.filter(h=>!h.acc).sort((a,b)=>b.key.localeCompare(a.key));
@@ -1138,9 +1141,14 @@ $('fCsv').onclick=()=>{
 /* ---------- tarimas pendientes de ingreso ---------- */
 const BODEGAS_TP=['02','10'];
 let tar=[], tarErr=null, cmts={}, tiendasCat={}, tpBod='02', tpVista='pend', tpSort='dias', tpDir=-1;
-// Las tarimas en estado Detallado van en su propio apartado
-const isDet=r=>(r.estado||'').toLowerCase()==='detallado';
-const tpBase=()=>tar.filter(r=>r.bodega===tpBod&&(tpVista==='det'?isDet(r):!isDet(r))).map(tpRow);
+// Las tarimas que ya terminaron su proceso (Detallado o Inconsistencia resuelta) van en el apartado «Finalizadas»
+// En piso y En contenedor: el producto aún no está físicamente en bodega, van en «Sin producto físico»
+const ESTADOS_FIN=['detallado','inconsistenciaresuelta'], ESTADOS_SINFIS=['enpiso','encontenedor'];
+const estKey=r=>(r.estado||'').toLowerCase().replace(/\s+/g,'');
+const grupoTp=r=>ESTADOS_FIN.includes(estKey(r))?'det':ESTADOS_SINFIS.includes(estKey(r))?'fis':'pend';
+const TP_VISTAS=[['pend','Pendientes de ingreso','Tarimas pendientes','pendientes'],['fis','Sin producto físico','Tarimas sin producto físico','sin_producto_fisico'],['det','Finalizadas','Tarimas finalizadas','finalizadas']];
+const tpVistaInfo=()=>TP_VISTAS.find(v=>v[0]===tpVista);
+const tpBase=()=>tar.filter(r=>r.bodega===tpBod&&grupoTp(r)===tpVista).map(tpRow);
 const codeTxt=v=>{if(v==null||v==='')return null;let c=String(v).trim();if(/^\d$/.test(c))c='0'+c;return c};
 function parseTarimas(rows){
   const m=new Map();
@@ -1181,8 +1189,9 @@ function renderTarimas(){
   const bods=[...new Set(BODEGAS_TP.concat(tar.map(r=>r.bodega)))].sort();
   if(!bods.includes(tpBod)) tpBod=bods[0];
   $('tpBod').innerHTML=bods.map(b=>`<button data-b="${esc(b)}" class="${b===tpBod?'on':''}">Bodega ${esc(b)} · ${tar.filter(r=>r.bodega===b).length}</button>`).join('');
-  const inB=tar.filter(r=>r.bodega===tpBod), nDet=inB.filter(isDet).length;
-  $('tpVista').innerHTML=`<button data-v="pend" class="${tpVista==='pend'?'on':''}">Pendientes de ingreso · ${inB.length-nDet}</button><button data-v="det" class="${tpVista==='det'?'on':''}">Detalladas · ${nDet}</button>`;
+  const inB=tar.filter(r=>r.bodega===tpBod);
+  const tips={pend:'En ruta, entregado, recepcionado y demás estados en proceso',fis:'En piso y en contenedor: el producto aún no está en bodega',det:'Detallado e inconsistencia resuelta'};
+  $('tpVista').innerHTML=TP_VISTAS.map(([v,l])=>`<button data-v="${v}" class="${tpVista===v?'on':''}" title="${tips[v]}">${l} · ${inB.filter(r=>grupoTp(r)===v).length}</button>`).join('');
   $('tpVista').querySelectorAll('button').forEach(x=>x.onclick=()=>{tpVista=x.dataset.v;$('tpEstado').value='';$('tpTienda').value='';renderTarimas()});
   $('tpBod').querySelectorAll('button').forEach(x=>x.onclick=()=>{tpBod=x.dataset.b;$('tpEstado').value='';$('tpTienda').value='';renderTarimas()});
   const empty=$('tpEmpty');
@@ -1192,7 +1201,7 @@ function renderTarimas(){
   const last=inB.reduce((a,r)=>r.cargado_en>a?r.cargado_en:a,'');
   $('tpNote').textContent=last?'· reporte cargado el '+new Date(last).toLocaleString('es-GT',{dateStyle:'short',timeStyle:'short'}):'';
   if(!all.length){empty.hidden=false;$('tpBody').hidden=true;
-    empty.innerHTML=inB.length?`<b>No hay tarimas ${tpVista==='det'?'detalladas':'pendientes de ingreso'} en la bodega ${esc(tpBod)}.</b>`:`<b>Aún no se ha cargado el reporte de la bodega ${esc(tpBod)}.</b><div class="note">Exporta del WMS el reporte «tarimas nunca recepcionadas» con destino bodega ${esc(tpBod)} y cárgalo con «Cargar datos del día». También sirve un solo archivo que traiga las dos bodegas.</div>`;return}
+    empty.innerHTML=inB.length?`<b>No hay tarimas en «${tpVistaInfo()[1]}» en la bodega ${esc(tpBod)}.</b>`:`<b>Aún no se ha cargado el reporte de la bodega ${esc(tpBod)}.</b><div class="note">Exporta del WMS el reporte «tarimas nunca recepcionadas» con destino bodega ${esc(tpBod)} y cárgalo con «Cargar datos del día». También sirve un solo archivo que traiga las dos bodegas.</div>`;return}
   empty.hidden=true;$('tpBody').hidden=false;
   fillSelect('tpEstado',[...new Set(all.map(r=>r.estado).filter(Boolean))].sort(),'Todos');
   fillSelect('tpTienda',[...new Set(all.map(r=>r.tienda_origen).filter(Boolean))].sort(),'Todas');
@@ -1204,8 +1213,8 @@ function renderTarimas(){
   const tiendasN=new Set(rows.map(r=>r.tienda_origen)).size;
   const atr=rows.filter(r=>r.dias!=null&&r.dias>=3).length;
   $('tpKpis').innerHTML=`
-    <div class="card kpi k1"><div class="lbl">${tpVista==='det'?'Tarimas detalladas':'Tarimas pendientes'}</div><div class="val">${nf(rows.length)}</div><div class="sub">bodega ${esc(tpBod)}${rows.length!==all.length?' · de '+nf(all.length)+' en el reporte':''}</div></div>
-    <div class="card kpi k2"><div class="lbl">Con 3 días o más</div><div class="val">${nf(atr)}</div><div class="sub">desde la carga a contenedor</div></div>
+    <div class="card kpi k1"><div class="lbl">${tpVistaInfo()[2]}</div><div class="val">${nf(rows.length)}</div><div class="sub">bodega ${esc(tpBod)}${rows.length!==all.length?' · de '+nf(all.length)+' en el reporte':''}</div></div>
+    <div class="card kpi k2"><div class="lbl">Con 3 días o más</div><div class="val">${nf(atr)}</div><div class="sub">${rows.length&&rows.every(r=>r.desdeCreacion)?'desde la creación de la tarima':rows.some(r=>r.desdeCreacion)?'desde la carga a contenedor (o la creación*)':'desde la carga a contenedor'}</div></div>
     <div class="card kpi k3"><div class="lbl">Más antigua</div><div class="val">${old?nf(old.dias)+' d':'–'}</div><div class="sub">${old?'tarima '+esc(old.tarima||'')+' · '+esc(old.tienda||old.tienda_origen||''):''}</div></div>
     <div class="card kpi k4"><div class="lbl">Contenedores · tiendas</div><div class="val">${nf(cont)} · ${nf(tiendasN)}</div><div class="sub">contenedores distintos · tiendas de origen</div></div>`;
   const byE={}; all.forEach(r=>{byE[r.estado]=(byE[r.estado]||0)+1});
@@ -1252,7 +1261,7 @@ $('tpCsv').onclick=()=>{
   const rows=tpFiltered(tpBase());
   const lines=[H.join(',')].concat(rows.map(r=>[r.tarima,r.numero_contenedor,estadoTxt(r.estado),r.tienda_origen,r.tienda,fdt(r.fecha_fin_carga),r.dias==null?'':r.dias,fdt(r.fecha_llegada),r.usuario_carga,r.comentario].map(q).join(',')));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}));
-  a.download='tarimas_'+(tpVista==='det'?'detalladas':'pendientes')+'_B'+tpBod+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.download='tarimas_'+tpVistaInfo()[3]+'_B'+tpBod+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 let dtDraft=[];
 function dtDraw(){
